@@ -1,5 +1,5 @@
 [package]
-name = "bender-config"
+name = "bender_config"
 version = "0.1.0"
 authors = ["David Huss <dh@widerstandzwecklos.at>"]
 
@@ -7,3 +7,6 @@ authors = ["David Huss <dh@widerstandzwecklos.at>"]
 docopt = "1"
 serde = "1.0" # if you're using `derive(Deserialize)`
 serde_derive = "1.0" # if you're using `derive(Deserialize)`
+toml = "0.4"
+dialoguer = "0.1.0"
+colored = "1.6"

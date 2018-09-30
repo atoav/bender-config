@@ -1,8 +1,16 @@
 #[macro_use]
 extern crate serde_derive;
 extern crate docopt;
+extern crate dialoguer;
+extern crate colored;
+extern crate bender_config;
+
+
 
 use docopt::Docopt;
+use dialoguer::Confirmation;
+use colored::*;
+use bender_config::{Config, PathMethods};
 
 const USAGE: &'static str = "
 bender-config
@@ -10,29 +18,27 @@ bender-config
 A cli to the bender-configuration file
 
 Usage:
-  bender-config config
-  bender-config config show
-  bender-config config get <key>
-  bender-config config set <key>
-  bender-config config path
-  bender-config config reset
+  bender-config new
+  bender-config new default
+  bender-config validate
+  bender-config show
+  bender-config path
 
   bender-config (-h | --help)
   bender-config --version
 
 Commands:
-  config . . . . . . . .  Run the configuration wizard
+  new  . . . . . . . . .  Run the configuration wizard
 
-  config show  . . . . .  Show the configuration file
+  new default  . . . . .  Write a default config to the default location
 
-  config get <key> . . .  Get a key from the configuration file
-                          e.g. Paths will return the paths set
+  show . . . . . . . . .  Show the configuration file
 
-  config set <key> . . .  Set a key in the configuration file
+  validate . . . . . . .  Check for validity
 
-  config path  . . . . .  Return the path of the configuration file
+  path . . . . . . . . .  Return the path of the configuration file
 
-  config reset . . . . .  Reset the configuration to its default values
+
 
 
 
@@ -55,26 +61,157 @@ Options:
 
 #[derive(Debug, Deserialize)]
 struct Args {
-    arg_key: String,
-    arg_job: Vec<String>,
-    arg_x: Option<i32>,
-    arg_y: Option<i32>,
-    cmd_config: bool,
-    cmd_set: bool,
-    cmd_reset: bool,
-    cmd_delete: bool,
-    cmd_abort: bool,
-    cmd_restart: bool,
-    cmd_pause: bool,
-    cmd_job: bool,
-    cmd_all: bool,
-    cmd_all_except: bool,
-    cmd_list: bool,
     cmd_show: bool,
-    cmd_info: bool,
-    cmd_get: bool,
     cmd_path: bool,
+    cmd_default: bool,
+    cmd_new: bool,
+    cmd_validate: bool
 }
+
+pub type GenError = Box<std::error::Error>;
+pub type GenResult<T> = Result<T, GenError>;
+
+
+/// This is just a nice colorful wrapper around the path's is_writeable() method
+fn check_permissions() -> GenResult<bool>{
+    let c = Config::default();
+        match c.paths.config.is_writeable(){
+            Ok(is_writeable) => {
+                match is_writeable{
+                    true => {
+                        Ok(true)
+                    },
+                    false => {
+                        let label = " Error ".on_red().bold();
+                        let error_message = format!("you don't have the permissions to write to {}", c.paths.config);
+                        println!("    {} {}", label, error_message);
+                        Ok(false)
+                    }
+                }
+            },
+            Err(err) => {
+                let label = " Error ".on_red().bold();
+                println!("    {} while checking permissions on {}: {}", label, c.paths.config, err);
+                Err(err)
+            }
+        }
+}
+
+
+
+
+/// Create a new default config.toml at the path specified in the bender_config
+/// library. This uses the Structs default values.
+fn new_default(){
+    let c = Config::default();
+    match check_permissions(){
+        Ok(is_writeable) if is_writeable => {
+            let message = match c.paths.config.exists(){
+                true => {
+                    let overwrite = "overwrite".red();
+                    format!("Do you want to {} the config at {} with the defaults?", overwrite, c.paths.config)
+                },
+                false => format!("Do you want to write the default config to {}?", c.paths.config)
+            };
+            if Confirmation::new(message.as_str()).interact().expect("Failed"){
+                match c.write_changes(){
+                    Ok(_) => {
+                        let label = "  OK  ".on_green().bold();
+                        println!("    {} Wrote default config to {}", label, c.paths.config)
+                    },
+                    Err(err) => {
+                        let label = " Error ".on_red().bold();
+                        println!("    {} Couldn't write default config to {}. Error: {}", label, c.paths.config, err)
+                    }
+                }
+            }
+        },
+        _ => ()
+    }
+}
+
+
+
+
+/// Print a config if it exists
+fn show(){
+    let c = Config::default();
+    let p = c.paths.config;
+    if p.exists(){
+        match Config::from_file(p){
+            Ok(c) => {
+                match c.serialize(){
+                    Ok(s) => println!("{}", s),
+                    Err(err) => {
+                        let label = " Error ".on_red().bold();
+                        println!("    {} Couldn't read the config. Serialization failed with Error: {}", label, err);
+                    }
+                }
+                
+            },
+            Err(err) => {
+                let label = " Error ".on_red().bold();
+                println!("    {} Couldn't read the config. Deserialization failed with Error: {}", label, err);
+            }
+        }
+    }else{
+        let label = " Error ".on_red().bold();
+        println!("    {} there is no config at {}.\n    Create with bender-config new or bender-config new default", label, p);
+    }
+}
+
+
+
+
+/// Print the configs path if it exists
+fn path(){
+    let c = Config::default();
+    let p = c.paths.config;
+    if p.exists(){
+        println!("{}", p);
+    }else{
+        let label = " Error ".on_red().bold();
+        println!("    {} there is no config at {}.\n    Create with bender-config new or bender-config new default", label, p);
+    }
+}
+
+
+
+
+/// Validate the config
+fn validate(){
+    let c = Config::default();
+    let p = c.paths.config;
+    if p.exists(){
+        match Config::from_file(p){
+            Ok(c) => {
+                match c.serialize(){
+                    Ok(_) => {
+                        let label = "  OK  ".on_green().bold();
+                        println!("    {} the config at {} is valid TOML and is a valid bender config", label, c.paths.config)
+                    },
+                    Err(err) => {
+                        let label = " Error ".on_red().bold();
+                        println!("    {} Couldn't read the config. Serialization failed with Error: {}", label, err);
+                    }
+                }
+                
+            },
+            Err(err) => {
+                let label = " Error ".on_red().bold();
+                println!("    {} Couldn't read the config. Deserialization failed with Error: {}", label, err);
+            }
+        }
+    }else{
+        let label = " Error ".on_red().bold();
+        println!("    {} there is no config at {}.\n    Create with bender-config new or bender-config new default", label, p);
+    }
+}
+
+
+
+
+
 
 fn main() {
     let args: Args = Docopt::new(USAGE)
@@ -82,39 +219,30 @@ fn main() {
                             .unwrap_or_else(|e| e.exit());
 
     // Run configuration wizard if config is the sole command
-    if args.cmd_config 
-        && !args.cmd_set 
-        && !args.cmd_reset 
-        && !args.cmd_get 
-        && !args.cmd_show 
-        && !args.cmd_path{
-        println!("Command: Config Wizard");
+    if args.cmd_new && !args.cmd_default{
+        
     }
 
-    // Print the config
-    if args.cmd_config && args.cmd_show{
-        println!("Command: Print the config");
+    // Create a new default config at the default path
+    if args.cmd_new && args.cmd_default{
+        new_default();
     }
 
-    // Get individual key value pairs
-    if args.cmd_config && args.cmd_get{
-        println!("Command: Get config values");
+    // Print the config if it exists
+    if args.cmd_show{
+        show();
     }
 
-    // Set individual key value pairs
-    if args.cmd_config && args.cmd_set{
-        println!("Command: Set config values");
+    // Get the config path if the config exists
+    if args.cmd_path{
+        path(); 
     }
 
-    // Get the config path
-    if args.cmd_config && args.cmd_path{
-        println!("Command: get the config path");
+    // Get the config path if the config exists
+    if args.cmd_validate{
+        validate(); 
     }
 
-    // Reset the config to its initial state
-    if args.cmd_config && args.cmd_reset{
-        println!("Command: reset the config");
-    }
 
 
 }
