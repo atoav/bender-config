@@ -1,0 +1,9 @@
+[package]
+name = "bender-config"
+version = "0.1.0"
+authors = ["David Huss <dh@widerstandzwecklos.at>"]
+
+[dependencies]
+docopt = "1"
+serde = "1.0" # if you're using `derive(Deserialize)`
+serde_derive = "1.0" # if you're using `derive(Deserialize)`
