@@ -3,10 +3,10 @@
 //! - the rust library
 //! - a CLI tool for creating and managing the config
 //!
-//! It can be loaded in a rust project via the public git mirror by putting this in your Cargo.toml:  
+//! It can be loaded into a rust project via its git repository by putting this in your Cargo.toml:  
 //! ```ignore
 //! [dependencies]
-//! bender_config = { git = "https://github.com/atoav/bender-config.git" }
+//! bender_config = { git = "ssh://git@code.hfbk.net:4242/bendercode/bender-config.git"}
 //! ```
 //! To update this run
 //! ```ignore
