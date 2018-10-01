@@ -141,6 +141,11 @@ impl Config{
     pub fn is_default(&self) -> bool{
         self == &Self::default()
     }
+
+    /// Returns the path of the configuration
+    pub fn location() -> String{
+        Self::default().paths.config
+    }
 }
 
 
