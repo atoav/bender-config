@@ -23,6 +23,7 @@ Usage:
   bender-config new appsecret
   bender-config validate
   bender-config show
+  bender-config show appsecret
   bender-config path
 
   bender-config (-h | --help)
@@ -36,6 +37,8 @@ Commands:
   new appsecret  . . . .  Generate a appsecret and put it to the private folder
 
   show . . . . . . . . .  Show the configuration file
+
+  show appsecret . . . .  Print the contents of the app.secret file
 
   validate . . . . . . .  Check for validity
 
@@ -166,6 +169,37 @@ fn show(){
 }
 
 
+/// Print the appsecrets contents
+fn show_appsecret(){
+    let c = Config::default();
+    let p = c.paths.config;
+    if p.exists(){
+        match Config::from_file(p){
+            Ok(c) => {
+                match c.read_appsecret(){
+                    Ok(s) => {
+                        println!("{}", s);
+                    },
+                    Err(err) => {
+                        let label = " Error ".on_red().bold();
+                        println!("    {} Couldn't read the appsecret.\n        Create it with \"bender-config new appsecret\" first and make sure it is readable.\n        Error: {}", label, err);
+                    }
+                }
+                
+            },
+            Err(err) => {
+                let label = " Error ".on_red().bold();
+                println!("    {} Couldn't read the config. Deserialization failed with Error: {}", label, err);
+            }
+        }
+    }else{
+        let label = " Error ".on_red().bold();
+        println!("    {} there is no config at {}.\n    Create with bender-config new or bender-config new default", label, p);
+    }
+}
+
+
+
 
 
 /// Print the configs path if it exists
@@ -213,9 +247,6 @@ fn validate(){
     }
 }
 
-
-// TODO: Implement Wizard
-// TODO: Check for more values needed to be stored
 
 
 
@@ -283,7 +314,7 @@ fn main() {
 
     // Run configuration wizard if config is the sole command
     if args.cmd_new && !args.cmd_default && !args.cmd_appsecret{
-        
+        println!("The wizard is not yet implemented, please help yourself by generating a default config and editing it by hand");
     }
 
     // Create a new default config at the default path
@@ -297,8 +328,13 @@ fn main() {
     }
 
     // Print the config if it exists
-    if args.cmd_show{
+    if args.cmd_show && !args.cmd_appsecret{
         show();
+    }
+
+    // Print the config if it exists
+    if args.cmd_show && args.cmd_appsecret{
+        show_appsecret();
     }
 
     // Get the config path if the config exists

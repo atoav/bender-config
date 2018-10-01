@@ -22,7 +22,7 @@ pub type GenResult<T> = Result<T, GenError>;
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Config{
     pub paths: Paths,
-    pub limits: Limits,
+    pub flaskbender: Flaskbender,
 }
 
 
@@ -31,7 +31,7 @@ impl Default for Config {
     fn default() -> Self { 
         Self{
             paths: Paths::default(),
-            limits: Limits::default()
+            flaskbender: Flaskbender::default()
         }
     }
 }
@@ -232,18 +232,23 @@ impl PathMethods for Path{
 
 
 
-// ============================== LIMITS STRUCT ================================
+// =========================== FLASKBENDER STRUCT ======================+=======
 #[serde(default)]
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct Limits{
-    pub upload: usize
+pub struct Flaskbender{
+    pub upload_limit: usize,
+    pub upload_url: String,
+    pub job_cookie_name: String
 }
 
 
-impl Default for Limits{
+impl Default for Flaskbender{
     fn default() -> Self{ 
         Self{
-            upload: 2
+            upload_limit: 2,
+            upload_url: "http://localhost:5000/blendfiles/".to_string(),
+            job_cookie_name: "bender-renderjobs".to_string(),
+            
         }
     }
 }
