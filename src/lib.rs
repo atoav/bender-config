@@ -59,6 +59,7 @@ pub type GenResult<T> = Result<T, GenError>;
 pub struct Config{
     pub paths: Paths,
     pub flaskbender: Flaskbender,
+    pub rabbitmq: RabbitMQ
 }
 
 
@@ -67,7 +68,8 @@ impl Default for Config {
     fn default() -> Self { 
         Self{
             paths: Paths::default(),
-            flaskbender: Flaskbender::default()
+            flaskbender: Flaskbender::default(),
+            rabbitmq : RabbitMQ::default()
         }
     }
 }
@@ -273,7 +275,7 @@ impl PathMethods for Path{
 
 
 
-// =========================== FLASKBENDER STRUCT ======================+=======
+// =========================== FLASKBENDER STRUCT ==============================
 #[serde(default)]
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Flaskbender{
@@ -293,6 +295,26 @@ impl Default for Flaskbender{
         }
     }
 }
+
+
+
+
+// ============================= RABBITMQ STRUCT ===============================
+#[serde(default)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct RabbitMQ{
+    pub url: String
+}
+
+
+impl Default for RabbitMQ{
+    fn default() -> Self{ 
+        Self{
+            url: "amqp://localhost//".to_string()
+        }
+    }
+}
+
 
 
 
