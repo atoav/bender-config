@@ -1,6 +1,10 @@
 #[macro_use]
 extern crate serde_derive;
 extern crate toml;
+extern crate rand;
+
+use rand::prelude::*;
+use rand::distributions::{Alphanumeric};
 
 use std::fs;
 use std::io::prelude::*;
@@ -104,6 +108,44 @@ impl Config{
 }
 
 
+impl Config {
+    /// Generates a 256 byte random Alphanumeric appsecret
+    pub fn generate_appsecret() -> String{
+        thread_rng().sample_iter(&Alphanumeric).take(256).collect()
+    }
+
+    /// Reads the appsecret from its path
+    pub fn read_appsecret(&self) -> GenResult<String>{
+        let mut file = fs::File::open(self.get_appsecret_path().as_str())?;
+        let mut contents = String::new();
+        file.read_to_string(&mut contents)?;
+        Ok(contents)
+    }
+
+    /// Writes the appsecret to its path
+    pub fn write_appsecret(&self) -> GenResult<()>{
+        let mut file = fs::File::create(self.get_appsecret_path().as_str())?;
+        let appsecret = Self::generate_appsecret();
+        let appsecret = appsecret.as_bytes();
+        file.write_all(&appsecret)?;
+        Ok(())
+    }
+
+    /// Gets the appsecret path (basically push app.secret to the private path)
+    pub fn get_appsecret_path(&self) -> String{
+        let mut p = PathBuf::from(self.paths.private.clone());
+        p.push("app.secret");
+        p.to_str().unwrap().to_string()
+    }
+
+    /// Returns true if the app secret exists
+    pub fn appsecret_exists(&self) -> bool{
+        PathBuf::from(self.get_appsecret_path()).exists()
+
+    }
+}
+
+
 
 
 
@@ -122,11 +164,12 @@ impl Default for Paths{
     fn default() -> Self{ 
         Self{
             config: "/etc/bender/config.toml".to_string(),
-            private: "./private".to_string(),
+            private: "/private".to_string(),
             upload: "/data".to_string()
         }
     }
 }
+
 
 type Path = String;
 
@@ -168,7 +211,11 @@ impl PathMethods for Path{
             None => {
                 match fs::create_dir_all(self){
                     Ok(_) => Ok(true),
-                    Err(err) => Err(From::from(err))
+                    Err(err) => match err.kind(){
+                        std::io::ErrorKind::PermissionDenied => Ok(false),
+                        std::io::ErrorKind::AlreadyExists => Ok(true),
+                        _ => Err(From::from(err))
+                    }
                 }
             }
         }

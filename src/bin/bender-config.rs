@@ -20,6 +20,7 @@ A cli to the bender-configuration file
 Usage:
   bender-config new
   bender-config new default
+  bender-config new appsecret
   bender-config validate
   bender-config show
   bender-config path
@@ -31,6 +32,8 @@ Commands:
   new  . . . . . . . . .  Run the configuration wizard
 
   new default  . . . . .  Write a default config to the default location
+
+  new appsecret  . . . .  Generate a appsecret and put it to the private folder
 
   show . . . . . . . . .  Show the configuration file
 
@@ -61,11 +64,13 @@ Options:
 
 #[derive(Debug, Deserialize)]
 struct Args {
-    cmd_show: bool,
-    cmd_path: bool,
-    cmd_default: bool,
     cmd_new: bool,
-    cmd_validate: bool
+    cmd_default: bool,
+    cmd_appsecret: bool,
+    cmd_show: bool,
+    cmd_validate: bool,
+    cmd_path: bool
+    
 }
 
 pub type GenError = Box<std::error::Error>;
@@ -73,7 +78,7 @@ pub type GenResult<T> = Result<T, GenError>;
 
 
 /// This is just a nice colorful wrapper around the path's is_writeable() method
-fn check_permissions() -> GenResult<bool>{
+fn check_config_permission() -> GenResult<bool>{
     let c = Config::default();
         match c.paths.config.is_writeable(){
             Ok(is_writeable) => {
@@ -104,7 +109,7 @@ fn check_permissions() -> GenResult<bool>{
 /// library. This uses the Structs default values.
 fn new_default(){
     let c = Config::default();
-    match check_permissions(){
+    match check_config_permission(){
         Ok(is_writeable) if is_writeable => {
             let message = match c.paths.config.exists(){
                 true => {
@@ -209,7 +214,65 @@ fn validate(){
 }
 
 
+// TODO: Implement Wizard
+// TODO: Check for more values needed to be stored
 
+
+
+/// Generate a new appsecret and put it into the private path. If there is already
+/// a app.secret, prompt before attempting a overwrite
+fn new_appsecret(){
+    let c = Config::default();
+    let p = c.paths.config;
+    if p.exists(){
+        match Config::from_file(p){
+            Ok(c) => {
+                match c.paths.private.is_writeable(){
+                    Ok(is_writable) => match is_writable{
+                        true => {
+                            let message = match c.appsecret_exists(){
+                                true => {
+                                    let overwrite = "overwrite".red();
+                                    format!("Do you want to {} the appsecret at {} with the defaults?", overwrite, c.get_appsecret_path())
+                                },
+                                false => format!("Do you want to write the appsecret to {}?", c.get_appsecret_path())
+                            };
+                            if Confirmation::new(message.as_str()).interact().expect("Failed"){
+                                match c.write_appsecret(){
+                                    Ok(_) => {
+                                        let label = "  OK  ".on_green().bold();
+                                        println!("    {} Wrote appsecret to {}", label, c.get_appsecret_path())
+                                    },
+                                    Err(err) => {
+                                        let label = " Error ".on_red().bold();
+                                        println!("    {} Couldn't write appsecret to {}. Error: {}", label, c.get_appsecret_path(), err)
+                                    }
+                                }
+                            }
+                        },
+                        false => {
+                            let label = " Error ".on_red().bold();
+                            let error_message = format!("you don't have the permissions to write to {}", c.get_appsecret_path());
+                            println!("    {} {}", label, error_message);
+                        }
+                    },
+                    Err(err) => {
+                        let label = " Error ".on_red().bold();
+                        println!("    {} while checking permissions on {}: {}", label, c.get_appsecret_path(), err);
+                    }
+                }
+                
+            },
+            Err(err) => {
+                let label = " Error ".on_red().bold();
+                println!("    {} Couldn't read the config. Deserialization failed with Error: {}", label, err);
+            }
+        }
+    }else{
+        let label = " Error ".on_red().bold();
+        println!("    {} there is no config at {}.\n    Create with bender-config new or bender-config new default", label, p);
+    }
+}
 
 
 
@@ -219,13 +282,18 @@ fn main() {
                             .unwrap_or_else(|e| e.exit());
 
     // Run configuration wizard if config is the sole command
-    if args.cmd_new && !args.cmd_default{
+    if args.cmd_new && !args.cmd_default && !args.cmd_appsecret{
         
     }
 
     // Create a new default config at the default path
     if args.cmd_new && args.cmd_default{
         new_default();
+    }
+
+    // Generate a new appsecret
+    if args.cmd_new && args.cmd_appsecret{
+        new_appsecret();
     }
 
     // Print the config if it exists
