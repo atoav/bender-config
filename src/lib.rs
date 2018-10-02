@@ -202,6 +202,18 @@ pub struct Paths{
     pub upload: Path
 }
 
+impl Paths{
+    /// Return a Path to blendfiles
+    pub fn blend(&self) -> String{
+        self.upload.push("blendfiles")
+    }
+
+    /// Return a Path to frames
+    pub fn frames(&self) -> String{
+        self.upload.push("frames")
+    }
+}
+
 
 impl Default for Paths{
     fn default() -> Self{ 
@@ -219,6 +231,7 @@ type Path = String;
 pub trait PathMethods{
     fn is_writeable(&self) -> GenResult<bool>;
     fn exists(&self) -> bool;
+    fn push<S>(&self, s: S) -> String where S: Into<String>;
 }
 
 impl PathMethods for Path{
@@ -268,6 +281,14 @@ impl PathMethods for Path{
     fn exists(&self) -> bool{
         let p = PathBuf::from(self.clone());
         p.exists()
+    }
+
+    /// Push onto self
+    fn push<S>(&self, s: S) -> String where S: Into<String>{
+        let s = s.into();
+        let mut p = PathBuf::from(self.clone());
+        p.push(s.as_str());
+        p.to_str().unwrap().to_string()
     }
 }
 
