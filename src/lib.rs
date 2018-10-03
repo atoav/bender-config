@@ -38,6 +38,8 @@
 extern crate serde_derive;
 extern crate toml;
 extern crate rand;
+extern crate blake2;
+extern crate hex;
 
 use rand::prelude::*;
 use rand::distributions::{Alphanumeric};
@@ -45,6 +47,7 @@ use rand::distributions::{Alphanumeric};
 use std::fs;
 use std::io::prelude::*;
 use std::path::PathBuf;
+use blake2::{Blake2b, Digest};
 
 
 pub type GenError = Box<std::error::Error>;
@@ -185,6 +188,22 @@ impl Config {
     pub fn appsecret_exists(&self) -> bool{
         PathBuf::from(self.get_appsecret_path()).exists()
 
+    }
+
+
+    /// Return a salt to be use for private fields. The salt is a blake2 hashed
+    /// version of the appsecret
+    pub fn get_salt(&self) -> GenResult<String>{
+        // Try to read the appsecret
+        match self.read_appsecret(){
+            Ok(appsecret) => {
+                let mut hash = Blake2b::new();
+                hash.input(&appsecret.clone().into_bytes());
+                let x = hash.result();
+                Ok(hex::encode(&x))
+            },
+            Err(err) => Err(err)
+        }
     }
 }
 

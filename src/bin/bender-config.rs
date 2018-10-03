@@ -24,6 +24,7 @@ Usage:
   bender-config validate
   bender-config show
   bender-config show appsecret
+  bender-config show salt
   bender-config path
 
   bender-config (-h | --help)
@@ -39,6 +40,8 @@ Commands:
   show . . . . . . . . .  Show the configuration file
 
   show appsecret . . . .  Print the contents of the app.secret file
+
+  show salt  . . . . . .  Generate the salt and print it
 
   validate . . . . . . .  Check for validity
 
@@ -70,6 +73,7 @@ struct Args {
     cmd_new: bool,
     cmd_default: bool,
     cmd_appsecret: bool,
+    cmd_salt: bool,
     cmd_show: bool,
     cmd_validate: bool,
     cmd_path: bool
@@ -197,6 +201,39 @@ fn show_appsecret(){
         println!("    {} there is no config at {}.\n    Create with bender-config new or bender-config new default", label, p);
     }
 }
+
+
+
+/// Print the salt
+fn show_salt(){
+    let c = Config::default();
+    let p = c.paths.config;
+    if p.exists(){
+        match Config::from_file(p){
+            Ok(c) => {
+                match c.get_salt(){
+                    Ok(s) => {
+                        println!("{}", s);
+                    },
+                    Err(err) => {
+                        let label = " Error ".on_red().bold();
+                        println!("    {} Couldn't read the appsecret needed to generate the salt.\n        Create it with \"bender-config new appsecret\" first and make sure it is readable.\n        Error: {}", label, err);
+                    }
+                }
+                
+            },
+            Err(err) => {
+                let label = " Error ".on_red().bold();
+                println!("    {} Couldn't read the config. Deserialization failed with Error: {}", label, err);
+            }
+        }
+    }else{
+        let label = " Error ".on_red().bold();
+        println!("    {} there is no config at {}.\n    Create with bender-config new or bender-config new default", label, p);
+    }
+}
+
+
 
 
 
@@ -328,13 +365,18 @@ fn main() {
     }
 
     // Print the config if it exists
-    if args.cmd_show && !args.cmd_appsecret{
+    if args.cmd_show && !args.cmd_appsecret && !args.cmd_salt{
         show();
     }
 
-    // Print the config if it exists
-    if args.cmd_show && args.cmd_appsecret{
+    // Print the appsecret if it exists
+    if args.cmd_show && args.cmd_appsecret && !args.cmd_salt{
         show_appsecret();
+    }
+
+    // Print the salt if the appsecret exists
+    if args.cmd_show && !args.cmd_appsecret && args.cmd_salt{
+        show_salt();
     }
 
     // Get the config path if the config exists
