@@ -32,4 +32,4 @@ cargo doc --no-deps --open
 
 ### Installation
 To run cargo, make sure you have rust installed. Go to [rustup.rs](http://rustup.rs) and follow the instructions there
-To install the CLI tool `bender-config` just execute `./install` for a guided setup
+To install the CLI tool `bender-config` just execute `./install.sh` for a guided setup
