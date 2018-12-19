@@ -125,7 +125,7 @@ fn new_default(){
                 },
                 false => format!("Do you want to write the default config to {}?", c.paths.config)
             };
-            if Confirmation::new(message.as_str()).interact().expect("Failed"){
+            if Confirmation::new().with_text(message.as_str()).interact().expect("Failed"){
                 match c.write_changes(){
                     Ok(_) => {
                         let label = "  OK  ".on_green().bold();
@@ -305,7 +305,7 @@ fn new_appsecret(){
                                 },
                                 false => format!("Do you want to write the appsecret to {}?", c.get_appsecret_path())
                             };
-                            if Confirmation::new(message.as_str()).interact().expect("Failed"){
+                            if Confirmation::new().with_text(message.as_str()).interact().expect("Failed"){
                                 match c.write_appsecret(){
                                     Ok(_) => {
                                         let label = "  OK  ".on_green().bold();

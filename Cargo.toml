@@ -3,13 +3,17 @@ name = "bender_config"
 version = "0.1.0"
 authors = ["David Huss <dh@widerstandzwecklos.at>"]
 
+[lib]
+name = "bender_config"
+path = "src/lib.rs"
+
 [dependencies]
 docopt = "1"
-serde = "1.0" # if you're using `derive(Deserialize)`
-serde_derive = "1.0" # if you're using `derive(Deserialize)`
+serde = "1"
+serde_derive = "1"
 toml = "0.4"
 rand = "0.5"
-dialoguer = "0.1.0"
+dialoguer = "0.3"
 colored = "1.6"
 blake2 = "*"
 hex = "0.3"
