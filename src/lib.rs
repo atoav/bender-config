@@ -62,7 +62,8 @@ pub type GenResult<T> = Result<T, GenError>;
 pub struct Config{
     pub paths: Paths,
     pub flaskbender: Flaskbender,
-    pub rabbitmq: RabbitMQ
+    pub rabbitmq: RabbitMQ,
+    pub servername: String
 }
 
 
@@ -72,7 +73,8 @@ impl Default for Config {
         Self{
             paths: Paths::default(),
             flaskbender: Flaskbender::default(),
-            rabbitmq : RabbitMQ::default()
+            rabbitmq : RabbitMQ::default(),
+            servername: "bender.render".to_string()
         }
     }
 }
