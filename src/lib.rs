@@ -60,10 +60,10 @@ pub type GenResult<T> = Result<T, GenError>;
 #[serde(default)]
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Config{
+    pub servername: String,
     pub paths: Paths,
     pub flaskbender: Flaskbender,
     pub rabbitmq: RabbitMQ,
-    pub servername: String
 }
 
 
@@ -71,10 +71,10 @@ pub struct Config{
 impl Default for Config {
     fn default() -> Self { 
         Self{
+            servername: "bender.render".to_string(),
             paths: Paths::default(),
             flaskbender: Flaskbender::default(),
             rabbitmq : RabbitMQ::default(),
-            servername: "bender.render".to_string()
         }
     }
 }
