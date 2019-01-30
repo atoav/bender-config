@@ -1,6 +1,6 @@
 [package]
 name = "bender_config"
-version = "0.1.0"
+version = "0.1.1"
 license = "MIT"
 readme = "README.md"
 authors = ["David Huss <dh@widerstandzwecklos.at>"]
@@ -11,7 +11,7 @@ workspace = ".."
 extended-description = "As part of the bender renderfarm, the config acts both as a library and a cli tool to generate and read the config both for humans and other services"
 depends = "$auto"
 assets = [
-    ["target/release/bender-config", "usr/local/bin/", "755"]
+    ["target/release/bender-config", "usr/bin/", "755"]
 ]
 
 [lib]
