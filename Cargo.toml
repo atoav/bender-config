@@ -11,8 +11,7 @@ workspace = ".."
 extended-description = "As part of the bender renderfarm, the config acts both as a library and a cli tool to generate and read the config both for humans and other services"
 depends = "$auto"
 assets = [
-    ["target/release/bender-config", "usr/local/bin/", "755"],
-    ["bender-config.service", "etc/systemd/system/", "755"]
+    ["target/release/bender-config", "usr/local/bin/", "755"]
 ]
 
 [lib]
