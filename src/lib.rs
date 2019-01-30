@@ -64,6 +64,7 @@ pub struct Config{
     pub paths: Paths,
     pub flaskbender: Flaskbender,
     pub rabbitmq: RabbitMQ,
+    pub janitor: Janitor
 }
 
 
@@ -74,7 +75,8 @@ impl Default for Config {
             servername: "bender.render".to_string(),
             paths: Paths::default(),
             flaskbender: Flaskbender::default(),
-            rabbitmq : RabbitMQ::default(),
+            rabbitmq: RabbitMQ::default(),
+            janitor: Janitor::default()
         }
     }
 }
@@ -356,6 +358,26 @@ impl Default for RabbitMQ{
         }
     }
 }
+
+
+// =========================== JANITOR STRUCT ==============================
+#[serde(default)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct Janitor{
+    pub error_period_minutes: usize,
+    pub finish_period_minutes: usize
+}
+
+
+impl Default for Janitor{
+    fn default() -> Self{ 
+        Self{
+            error_period_minutes: 240,
+            finish_period_minutes: 240
+        }
+    }
+}
+
 
 
 
