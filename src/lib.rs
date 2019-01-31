@@ -391,7 +391,7 @@ impl Default for Janitor{
 pub struct Worker{
     pub id: Uuid,
     pub disklimit: u64,
-    pub grace_period: usize,
+    pub grace_period: u64,
     pub workload: usize
 }
 
