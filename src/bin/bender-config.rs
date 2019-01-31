@@ -3,14 +3,14 @@ extern crate serde_derive;
 extern crate docopt;
 extern crate dialoguer;
 extern crate colored;
-extern crate bender_config;
+extern crate bender-config;
 
 
 
 use docopt::Docopt;
 use dialoguer::Confirmation;
 use colored::*;
-use bender_config::{Config, PathMethods};
+use bender-config::{Config, PathMethods};
 
 const USAGE: &'static str = "
 bender-config
