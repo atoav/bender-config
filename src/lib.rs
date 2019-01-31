@@ -246,8 +246,8 @@ impl Default for Paths{
     fn default() -> Self{ 
         Self{
             config: "/etc/bender/config.toml".to_string(),
-            private: "/private".to_string(),
-            upload: "/data".to_string()
+            private: "/var/lib/flask/private".to_string(),
+            upload: "/data/bender".to_string()
         }
     }
 }
