@@ -3,7 +3,7 @@ extern crate serde_derive;
 extern crate docopt;
 extern crate dialoguer;
 extern crate colored;
-extern bender_config;
+extern crate bender_config;
 
 
 
