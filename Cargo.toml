@@ -28,3 +28,4 @@ dialoguer = "0.3"
 colored = "1.6"
 blake2 = "*"
 hex = "0.3"
+uuid = { version = "0.7", features = ["serde", "v4"] }

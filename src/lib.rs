@@ -40,6 +40,7 @@ extern crate toml;
 extern crate rand;
 extern crate blake2;
 extern crate hex;
+extern crate uuid;
 
 use rand::prelude::*;
 use rand::distributions::{Alphanumeric};
@@ -48,6 +49,7 @@ use std::fs;
 use std::io::prelude::*;
 use std::path::PathBuf;
 use blake2::{Blake2b, Digest};
+use uuid::Uuid;
 
 
 pub type GenError = Box<std::error::Error>;
@@ -64,7 +66,8 @@ pub struct Config{
     pub paths: Paths,
     pub flaskbender: Flaskbender,
     pub rabbitmq: RabbitMQ,
-    pub janitor: Janitor
+    pub janitor: Janitor,
+    pub worker: Worker
 }
 
 
@@ -76,7 +79,8 @@ impl Default for Config {
             paths: Paths::default(),
             flaskbender: Flaskbender::default(),
             rabbitmq: RabbitMQ::default(),
-            janitor: Janitor::default()
+            janitor: Janitor::default(),
+            worker: Worker::default()
         }
     }
 }
@@ -378,6 +382,30 @@ impl Default for Janitor{
     }
 }
 
+
+
+
+// =========================== WORKER STRUCT ==============================
+#[serde(default)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct Worker{
+    pub id: Uuid,
+    pub disklimit: u64,
+    pub grace_period: usize,
+    pub workload: usize
+}
+
+
+impl Default for Worker{
+    fn default() -> Self{ 
+        Self{
+            id: Uuid::new_v4(),       // Worker Random ID asigned uppon config
+            disklimit: 200*1_000_000, // in_MB
+            grace_period: 60,         // How many seconds to keep blendfiles,
+            workload: 1               // How many frames to render at once
+        }
+    }
+}
 
 
 
