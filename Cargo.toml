@@ -14,10 +14,6 @@ assets = [
     ["target/release/bender-config", "usr/bin/", "755"]
 ]
 
-[[bin]]
-name = "bender-cli"
-path = "src/main.rs"
-
 [lib]
 name = "bender_config"
 path = "src/lib.rs"

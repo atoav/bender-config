@@ -121,11 +121,13 @@ fn new_default(){
             let message = match c.paths.config.exists(){
                 true => {
                     let overwrite = "overwrite".red();
-                    format!("Do you want to {} the config at {} with the defaults?", overwrite, c.paths.config)
+                    format!("Do you want to {} the config at {} with a new default configuration?", overwrite, c.paths.config)
                 },
                 false => format!("Do you want to write the default config to {}?", c.paths.config)
             };
+            // Ask for Confirmation on overwrite
             if Confirmation::new().with_text(message.as_str()).interact().expect("Failed"){
+                // Overwrite
                 match c.write_changes(){
                     Ok(_) => {
                         let label = "  OK  ".on_green().bold();
