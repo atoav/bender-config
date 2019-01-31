@@ -115,7 +115,7 @@ impl Config{
     /// Deserialize the Config from a file
     pub fn from_file<S>(path: S) -> GenResult<Self> where S: Into<String>{
         let path = path.into();
-        let mut file = fs::File::open(path.as_str())?;
+        let mut file = fs::File::open(path.trim())?;
         let mut contents = String::new();
         file.read_to_string(&mut contents)?;
         let deserialized = Self::deserialize(contents.as_str())?;
