@@ -1,5 +1,5 @@
 [package]
-name = "bender-config"
+name = "bender_config"
 version = "0.1.2"
 license = "MIT"
 readme = "README.md"
