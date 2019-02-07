@@ -334,7 +334,13 @@ impl PathMethods for Path{
                                                  .open(p.clone());
 
                 match file{
-                    Ok(_) => {
+                    Ok(f) => {
+                        match f.metadata(){
+                            Ok(metadata) => {
+                                println!("The file is {} long", metadata.len());
+                            },
+                            Err(err) => eprintln!("Error while retrieving metadata: {}", err)
+                        }
                         fs::remove_file(p)?;
                         Ok(true)
                     },
