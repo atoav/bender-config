@@ -41,6 +41,8 @@ extern crate rand;
 extern crate blake2;
 extern crate hex;
 extern crate uuid;
+extern crate dialoguer;
+extern crate console;
 
 use rand::prelude::*;
 use rand::distributions::{Alphanumeric};
@@ -50,6 +52,11 @@ use std::io::prelude::*;
 use std::path::PathBuf;
 use blake2::{Blake2b, Digest};
 use uuid::Uuid;
+use dialoguer::{Select, Input};
+
+
+mod wizard;
+use wizard::Dialog;
 
 
 pub type GenError = Box<std::error::Error>;
@@ -145,6 +152,39 @@ impl Config{
         let deserialized = Self::deserialize(contents.as_str())?;
         *self = deserialized;
         Ok(())
+    }
+}
+
+
+impl Dialog for Config{
+    fn ask() -> Self{
+        let servername = Input::<String>::new()
+                                        .with_prompt("The name of the server (displayed in the header of the website)")
+                                        .default("bender.render".to_string())
+                                        .interact()
+                                        .expect("Couldn't display dialog.");
+        
+        Self{
+            servername: servername,
+            paths: Paths::ask(),
+            flaskbender: Flaskbender::ask(),
+            rabbitmq: RabbitMQ::ask(),
+            janitor: Janitor::ask(),
+            worker: Worker::ask()
+        }
+    }
+
+    fn compare(&self, other: &Self) -> Self{
+        let servername = wizard::differ(self.servername.clone(), other.servername.clone());
+
+        Self{
+            servername: servername,
+            paths: self.paths.compare(&other.paths),
+            flaskbender: self.flaskbender.compare(&other.flaskbender),
+            rabbitmq: self.rabbitmq.compare(&other.rabbitmq),
+            janitor: self.janitor.compare(&other.janitor),
+            worker: self.worker.compare(&other.worker)
+        }
     }
 }
 
@@ -321,6 +361,45 @@ impl PathMethods for Path{
 
 
 
+impl Dialog for Paths{
+    fn ask() -> Self{
+        let config = Input::<String>::new().with_prompt("Specify the path where bender's config.toml should be stored")
+                                           .default("/etc/bender/config.toml".to_string())
+                                           .interact()
+                                           .expect("Couldn't display dialog.");
+
+        let private = Input::<String>::new().with_prompt("Specify the directory where the app.secret for flaskbender should be stored")
+                                           .default("/var/lib/flask/private".to_string())
+                                           .interact()
+                                           .expect("Couldn't display dialog.");
+
+        let upload = Input::<String>::new().with_prompt("Specify the directory where the uploaded blendfiles and the rendered frames will be stored")
+                                           .default("/data/bender".to_string())
+                                           .interact()
+                                           .expect("Couldn't display dialog.");
+        
+        Self{
+            config: config,
+            private: private,
+            upload: upload,
+        }
+    }
+
+    fn compare(&self, other: &Self) -> Self{
+        let config = wizard::differ(self.config.clone(), other.config.clone());
+        let private = wizard::differ(self.private.clone(), other.private.clone());
+        let upload = wizard::differ(self.upload.clone(), other.upload.clone());
+
+        Self{
+            config: config,
+            private: private,
+            upload: upload,
+        }
+    }
+}
+
+
+
 
 
 // =========================== FLASKBENDER STRUCT ==============================
@@ -339,7 +418,38 @@ impl Default for Flaskbender{
             upload_limit: 2,
             upload_url: "http://localhost:5000/blendfiles/".to_string(),
             job_cookie_name: "bender-renderjobs".to_string(),
+        }
+    }
+}
 
+impl Dialog for Flaskbender{
+    fn ask() -> Self{
+        let upload_limit = Input::<usize>::new().with_prompt("The maximum upload size in GB")
+                                                .default(2)
+                                                .interact()
+                                                .expect("Couldn't display dialog.");
+        // let upload_url = Input::<usize>::new().with_prompt("The upload URL").default("http://localhost:5000/blendfiles/".to_string()).interact().expect("Couldn't display dialog.");
+        let job_cookie_name = Input::<String>::new().with_prompt("The name of the secure cookie, where the users job IDs are stored")
+                                                    .default("bender-renderjobs".to_string())
+                                                    .interact()
+                                                    .expect("Couldn't display dialog.");
+        
+        Self{
+            upload_limit: upload_limit,
+            upload_url: "http://localhost:5000/blendfiles/".to_string(),
+            job_cookie_name: job_cookie_name,
+        }
+    }
+
+    fn compare(&self, other: &Self) -> Self{
+        let upload_limit = wizard::differ(self.upload_limit.clone(), other.upload_limit.clone());
+        // let upload_url = wizard::differ(self.upload_url.clone(), other.upload_url.clone());
+        let job_cookie_name = wizard::differ(self.job_cookie_name.clone(), other.job_cookie_name.clone());
+
+        Self{
+            upload_limit: upload_limit,
+            upload_url: "http://localhost:5000/blendfiles/".to_string(),
+            job_cookie_name: job_cookie_name,
         }
     }
 }
@@ -363,13 +473,33 @@ impl Default for RabbitMQ{
     }
 }
 
+impl Dialog for RabbitMQ{
+    fn ask() -> Self{
+        let url = Input::<String>::new().with_prompt("RabbitMQ URL").default( "amqp://localhost//".to_string()).interact().expect("Couldn't display dialog.");
+        
+        Self{
+            url: url
+        }
+    }
+
+    fn compare(&self, other: &Self) -> Self{
+        let url = wizard::differ(self.url.clone(), other.url.clone());
+
+        Self{
+            url: url
+        }
+    }
+}
+
+
 
 // =========================== JANITOR STRUCT ==============================
 #[serde(default)]
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Janitor{
     pub error_period_minutes: usize,
-    pub finish_period_minutes: usize
+    pub finish_period_minutes: usize,
+    pub download_period_minutes: usize
 }
 
 
@@ -377,10 +507,38 @@ impl Default for Janitor{
     fn default() -> Self{ 
         Self{
             error_period_minutes: 240,
-            finish_period_minutes: 240
+            finish_period_minutes: 240,
+            download_period_minutes: 240
         }
     }
 }
+
+impl Dialog for Janitor{
+    fn ask() -> Self{
+        let error_period_minutes = Input::<usize>::new().with_prompt("How long should a job be kept arround after error? (in minutes)").default(240).interact().expect("Couldn't display dialog.");
+        let finish_period_minutes = Input::<usize>::new().with_prompt("How long should a job be kept arround after rendering ended? (in minutes)").default(240).interact().expect("Couldn't display dialog.");
+        let download_period_minutes = Input::<usize>::new().with_prompt("How long should a job be kept arround after download? (in minutes)").default(240).interact().expect("Couldn't display dialog.");
+        
+        Self{
+            error_period_minutes: error_period_minutes,
+            finish_period_minutes: finish_period_minutes,
+            download_period_minutes: download_period_minutes
+        }
+    }
+
+    fn compare(&self, other: &Self) -> Self{
+        let error_period_minutes = wizard::differ(self.error_period_minutes, other.error_period_minutes);
+        let finish_period_minutes = wizard::differ(self.finish_period_minutes, other.finish_period_minutes);
+        let download_period_minutes = wizard::differ(self.download_period_minutes, other.download_period_minutes);
+
+        Self{
+            error_period_minutes: error_period_minutes,
+            finish_period_minutes: finish_period_minutes,
+            download_period_minutes: download_period_minutes
+        }
+    }
+}
+
 
 
 
@@ -400,9 +558,38 @@ impl Default for Worker{
     fn default() -> Self{ 
         Self{
             id: Uuid::new_v4(),       // Worker Random ID asigned uppon config
-            disklimit: 200*1_000_000, // in_MB
+            disklimit: 2,             // in GB
             grace_period: 60,         // How many seconds to keep blendfiles,
             workload: 1               // How many frames to render at once
+        }
+    }
+}
+
+
+impl Dialog for Worker{
+    fn ask() -> Self{
+        let disklimit = Input::<u64>::new().with_prompt("How much disk space should the worker keep free? (in GB)").default(2).interact().expect("Couldn't display dialog.");
+        let grace_period = Input::<u64>::new().with_prompt("How long should downloaded blendfiles be kept around (ireelevant on server)? (in secs)").default(60).interact().expect("Couldn't display dialog.");
+        let workload = Input::<usize>::new().with_prompt("How many frames should the worker render at once?").default(1).interact().expect("Couldn't display dialog.");
+        
+        Self{
+            id: Uuid::new_v4(),                // Worker Random ID asigned uppon config
+            disklimit: disklimit*1e9 as u64,   // in GB
+            grace_period: grace_period,        // How many seconds to keep blendfiles,
+            workload: workload                 // How many frames to render at once
+        }
+    }
+
+    fn compare(&self, other: &Self) -> Self{
+        let disklimit = wizard::differ(self.disklimit, other.disklimit);
+        let grace_period = wizard::differ(self.grace_period, other.grace_period);
+        let workload = wizard::differ(self.workload, other.workload);
+
+        Self{
+            id: Uuid::new_v4(),                // Worker Random ID asigned uppon config
+            disklimit: disklimit,              // in GB
+            grace_period: grace_period,        // How many seconds to keep blendfiles,
+            workload: workload                 // How many frames to render at once
         }
     }
 }
