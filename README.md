@@ -1,9 +1,7 @@
 # bender_config
 
 bender_config is a rust library, that deals with reading, writing and creating \
-the config for the bender renderfarm. It consists of two parts:
-- the rust library
-- a CLI tool for creating and managing the config
+the config for the bender renderfarm.
 
 It can be loaded into a rust project via its git repository by putting this in your Cargo.toml:
 ```rust
