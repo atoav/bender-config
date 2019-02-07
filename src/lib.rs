@@ -337,11 +337,13 @@ impl PathMethods for Path{
                     Ok(f) => {
                         match f.metadata(){
                             Ok(metadata) => {
-                                println!("The file is {} long", metadata.len());
+                                match metadata.len(){
+                                    0 => fs::remove_file(p)?,
+                                    _ => ()
+                                }
                             },
                             Err(err) => eprintln!("Error while retrieving metadata: {}", err)
                         }
-                        fs::remove_file(p)?;
                         Ok(true)
                     },
                     Err(err) => match err.kind(){
