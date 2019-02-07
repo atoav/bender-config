@@ -55,7 +55,7 @@ use uuid::Uuid;
 use dialoguer::{Select, Input};
 
 
-mod wizard;
+pub mod wizard;
 use wizard::Dialog;
 
 
