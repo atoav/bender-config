@@ -174,16 +174,30 @@ impl Dialog for Config{
         }
     }
 
-    fn compare(&self, other: &Self) -> Self{
-        let servername = wizard::differ(self.servername.clone(), other.servername.clone());
-
-        Self{
-            servername: servername,
-            paths: self.paths.compare(&other.paths),
-            flaskbender: self.flaskbender.compare(&other.flaskbender),
-            rabbitmq: self.rabbitmq.compare(&other.rabbitmq),
-            janitor: self.janitor.compare(&other.janitor),
-            worker: self.worker.compare(&other.worker)
+    fn compare(&self, other: Option<&Self>) -> Self{
+        match other{
+            Some(o) => {
+                let servername = wizard::differ(self.servername.clone(), Some(o.servername.clone()));
+                Self{
+                    servername: servername,
+                    paths: self.paths.compare(Some(&o.paths)),
+                    flaskbender: self.flaskbender.compare(Some(&o.flaskbender)),
+                    rabbitmq: self.rabbitmq.compare(Some(&o.rabbitmq)),
+                    janitor: self.janitor.compare(Some(&o.janitor)),
+                    worker: self.worker.compare(Some(&o.worker))
+                }
+            },
+            None => {
+                let servername = wizard::differ(self.servername.clone(), None);
+                Self{
+                    servername: servername,
+                    paths: self.paths.compare(None),
+                    flaskbender: self.flaskbender.compare(None),
+                    rabbitmq: self.rabbitmq.compare(None),
+                    janitor: self.janitor.compare(None),
+                    worker: self.worker.compare(None)
+                }
+            }
         }
     }
 }
@@ -385,15 +399,28 @@ impl Dialog for Paths{
         }
     }
 
-    fn compare(&self, other: &Self) -> Self{
-        let config = wizard::differ(self.config.clone(), other.config.clone());
-        let private = wizard::differ(self.private.clone(), other.private.clone());
-        let upload = wizard::differ(self.upload.clone(), other.upload.clone());
-
-        Self{
-            config: config,
-            private: private,
-            upload: upload,
+    fn compare(&self, other: Option<&Self>) -> Self{
+        match other{
+            Some(o) => {
+                let config = wizard::differ(self.config.clone(), Some(o.config.clone()));
+                let private = wizard::differ(self.private.clone(), Some(o.private.clone()));
+                let upload = wizard::differ(self.upload.clone(), Some(o.upload.clone()));
+                Self{
+                    config: config,
+                    private: private,
+                    upload: upload,
+                }
+            },
+            None => {
+                let config = wizard::differ(self.config.clone(), None);
+                let private = wizard::differ(self.private.clone(), None);
+                let upload = wizard::differ(self.upload.clone(), None);
+                Self{
+                    config: config,
+                    private: private,
+                    upload: upload,
+                }
+            }
         }
     }
 }
@@ -441,15 +468,28 @@ impl Dialog for Flaskbender{
         }
     }
 
-    fn compare(&self, other: &Self) -> Self{
-        let upload_limit = wizard::differ(self.upload_limit.clone(), other.upload_limit.clone());
-        // let upload_url = wizard::differ(self.upload_url.clone(), other.upload_url.clone());
-        let job_cookie_name = wizard::differ(self.job_cookie_name.clone(), other.job_cookie_name.clone());
-
-        Self{
-            upload_limit: upload_limit,
-            upload_url: "http://localhost:5000/blendfiles/".to_string(),
-            job_cookie_name: job_cookie_name,
+    fn compare(&self, other: Option<&Self>) -> Self{
+        match other{
+            Some(o) => {
+                let upload_limit = wizard::differ(self.upload_limit.clone(), Some(o.upload_limit.clone()));
+                // let upload_url = wizard::differ(self.upload_url.clone(), Some(o.upload_url.clone()));
+                let job_cookie_name = wizard::differ(self.job_cookie_name.clone(), Some(o.job_cookie_name.clone()));
+                Self{
+                    upload_limit: upload_limit,
+                    upload_url: "http://localhost:5000/blendfiles/".to_string(),
+                    job_cookie_name: job_cookie_name,
+                }
+            },
+            None => {
+                let upload_limit = wizard::differ(self.upload_limit.clone(), None);
+                // let upload_url = wizard::differ(self.upload_url.clone(), Some(o.upload_url.clone()));
+                let job_cookie_name = wizard::differ(self.job_cookie_name.clone(), None);
+                Self{
+                    upload_limit: upload_limit,
+                    upload_url: "http://localhost:5000/blendfiles/".to_string(),
+                    job_cookie_name: job_cookie_name,
+                }
+            }
         }
     }
 }
@@ -482,11 +522,20 @@ impl Dialog for RabbitMQ{
         }
     }
 
-    fn compare(&self, other: &Self) -> Self{
-        let url = wizard::differ(self.url.clone(), other.url.clone());
-
-        Self{
-            url: url
+    fn compare(&self, other: Option<&Self>) -> Self{
+        match other{
+            Some(o) => {
+                let url = wizard::differ(self.url.clone(), Some(o.url.clone()));
+                Self{
+                    url: url
+                }
+            },
+            None => {
+                let url = wizard::differ(self.url.clone(), None);
+                Self{
+                    url: url
+                }
+            }
         }
     }
 }
@@ -526,15 +575,28 @@ impl Dialog for Janitor{
         }
     }
 
-    fn compare(&self, other: &Self) -> Self{
-        let error_period_minutes = wizard::differ(self.error_period_minutes, other.error_period_minutes);
-        let finish_period_minutes = wizard::differ(self.finish_period_minutes, other.finish_period_minutes);
-        let download_period_minutes = wizard::differ(self.download_period_minutes, other.download_period_minutes);
-
-        Self{
-            error_period_minutes: error_period_minutes,
-            finish_period_minutes: finish_period_minutes,
-            download_period_minutes: download_period_minutes
+    fn compare(&self, other: Option<&Self>) -> Self{
+        match other{
+            Some(o) => {
+                let error_period_minutes = wizard::differ(self.error_period_minutes, Some(o.error_period_minutes));
+                let finish_period_minutes = wizard::differ(self.finish_period_minutes, Some(o.finish_period_minutes));
+                let download_period_minutes = wizard::differ(self.download_period_minutes, Some(o.download_period_minutes));
+                Self{
+                    error_period_minutes: error_period_minutes,
+                    finish_period_minutes: finish_period_minutes,
+                    download_period_minutes: download_period_minutes
+                }
+            },
+            None => {
+                let error_period_minutes = wizard::differ(self.error_period_minutes, None);
+                let finish_period_minutes = wizard::differ(self.finish_period_minutes, None);
+                let download_period_minutes = wizard::differ(self.download_period_minutes, None);
+                Self{
+                    error_period_minutes: error_period_minutes,
+                    finish_period_minutes: finish_period_minutes,
+                    download_period_minutes: download_period_minutes
+                }
+            }
         }
     }
 }
@@ -580,16 +642,32 @@ impl Dialog for Worker{
         }
     }
 
-    fn compare(&self, other: &Self) -> Self{
-        let disklimit = wizard::differ(self.disklimit, other.disklimit);
-        let grace_period = wizard::differ(self.grace_period, other.grace_period);
-        let workload = wizard::differ(self.workload, other.workload);
+    fn compare(&self, other: Option<&Self>) -> Self{
+        match other{
+            Some(o) => {
+                let disklimit = wizard::differ(self.disklimit, Some(o.disklimit));
+                let grace_period = wizard::differ(self.grace_period, Some(o.grace_period));
+                let workload = wizard::differ(self.workload, Some(o.workload));
 
-        Self{
-            id: Uuid::new_v4(),                // Worker Random ID asigned uppon config
-            disklimit: disklimit,              // in GB
-            grace_period: grace_period,        // How many seconds to keep blendfiles,
-            workload: workload                 // How many frames to render at once
+                Self{
+                    id: Uuid::new_v4(),                // Worker Random ID asigned uppon config
+                    disklimit: disklimit,              // in GB
+                    grace_period: grace_period,        // How many seconds to keep blendfiles,
+                    workload: workload                 // How many frames to render at once
+                }
+            },
+            None => {
+                let disklimit = wizard::differ(self.disklimit, None);
+                let grace_period = wizard::differ(self.grace_period, None);
+                let workload = wizard::differ(self.workload, None);
+
+                Self{
+                    id: Uuid::new_v4(),                // Worker Random ID asigned uppon config
+                    disklimit: disklimit,              // in GB
+                    grace_period: grace_period,        // How many seconds to keep blendfiles,
+                    workload: workload                 // How many frames to render at once
+                }
+            }
         }
     }
 }

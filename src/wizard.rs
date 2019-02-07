@@ -10,33 +10,53 @@ use console::Term;
 
 pub trait Dialog {
     fn ask() -> Self;
-    fn compare(&self, other: &Self) -> Self;
+    fn compare(&self, other: Option<&Self>) -> Self;
 }
 
 /// Compare two items of same type to each other and display them besides each\
 /// other. Display a selector
-pub fn differ<T>(this: T, that: T) -> T 
+pub fn differ<T>(this: T, opt_that: Option<T>) -> T 
     where T: 'static + PartialEq + Display + Clone + Debug + std::str::FromStr,
     <T as std::str::FromStr>::Err: Display + Debug{
-    if this != that{
-        compareprint(&this, &that, width(), "!=");
-        let choice = Select::new()
-                        .item(format!("{}", this).as_str())
-                        .item(format!("{}", that).as_str())
-                        .item("Manual override")
-                        .default(0)
-                        .interact()
-                        .expect("Couldn't display dialog.");
-        match choice{
-            2 => {
-                let x: T = Input::<T>::new().default(this).interact().expect("Couldn't display dialog.");
-                x
+    match opt_that{
+        Some(that) => {
+            if this != that{
+                compareprint(&this, &that, width(), "!=");
+                let choice = Select::new()
+                                .item(format!("{}", this).as_str())
+                                .item(format!("{}", that).as_str())
+                                .item("Manual override")
+                                .default(0)
+                                .interact()
+                                .expect("Couldn't display dialog.");
+                match choice{
+                    2 => {
+                        let x: T = Input::<T>::new().default(this).interact().expect("Couldn't display dialog.");
+                        x
+                    }
+                    1 => that,
+                    _ => this
+                }
+            }else{
+                this
+            } 
+        },
+        None      => {
+            println!("Old value: {}", &this);
+            let choice = Select::new()
+                            .item("Keep")
+                            .item("Manual override")
+                            .default(0)
+                            .interact()
+                            .expect("Couldn't display dialog.");
+            match choice{
+                1 => {
+                    let x: T = Input::<T>::new().default(this).interact().expect("Couldn't display dialog.");
+                    x
+                }
+                _ => this
             }
-            1 => that,
-            _ => this
         }
-    }else{
-        this
     }
 }
 
