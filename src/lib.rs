@@ -554,10 +554,15 @@ impl Dialog for RabbitMQ{
 #[serde(default)]
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Janitor{
-    pub checking_period_seconds: usize,
-    pub error_period_minutes: usize,
-    pub finish_period_minutes: usize,
-    pub download_period_minutes: usize
+    pub checking_period_seconds:       usize,
+    pub error_deletion_min_minutes:    usize,
+    pub error_deletion_max_minutes:    usize,
+    pub finish_deletion_min_minutes:   usize,
+    pub finish_deletion_max_minutes:   usize,
+    pub download_deletion_min_minutes: usize,
+    pub download_deletion_max_minutes: usize,
+    pub cancel_deletion_min_minutes:   usize,
+    pub cancel_deletion_max_minutes:   usize
 }
 
 
@@ -565,25 +570,44 @@ impl Default for Janitor{
     fn default() -> Self{ 
         Self{
             checking_period_seconds: 60,
-            error_period_minutes: 240,
-            finish_period_minutes: 240,
-            download_period_minutes: 240
+            error_deletion_min_minutes: 60*24,
+            error_deletion_max_minutes: 60*24*14,
+            finish_deletion_min_minutes: 60*24,
+            finish_deletion_max_minutes: 60*24*14,
+            download_deletion_min_minutes: 60*4,
+            download_deletion_max_minutes: 60*24*4,
+            cancel_deletion_min_minutes: 15,
+            cancel_deletion_max_minutes: 15
         }
     }
 }
 
 impl Dialog for Janitor{
     fn ask() -> Self{
+
+        println!("\nThe bender-janitor service cleans up jobs and job files that have somehow ended (e.g. canceled, errored, finished etc)");
         let checking_period_seconds = Input::<usize>::new().with_prompt("How frequenctly should the janitor check for cleaning? (in seconds)").default(60).interact().expect("Couldn't display dialog.");
-        let error_period_minutes = Input::<usize>::new().with_prompt("How long should a job be kept arround after error? (in minutes)").default(240).interact().expect("Couldn't display dialog.");
-        let finish_period_minutes = Input::<usize>::new().with_prompt("How long should a job be kept arround after rendering ended? (in minutes)").default(240).interact().expect("Couldn't display dialog.");
-        let download_period_minutes = Input::<usize>::new().with_prompt("How long should a job be kept arround after download? (in minutes)").default(240).interact().expect("Couldn't display dialog.");
         
+        println!("\nThe bender-janitor will dynamically decide when to keep a job around for longer (e.g. when there is a lot of free disk space) and when to delete these jobs. You can specify minimum and maximum times:");
+        let error_deletion_min_minutes    = Input::<usize>::new().with_prompt("Minimum grace period for deletion after error (in minutes)").default(60*24).interact().expect("Couldn't display dialog.");
+        let error_deletion_max_minutes    = Input::<usize>::new().with_prompt("Maximum grace period for deletion after error (in minutes)").default(60*24*14).interact().expect("Couldn't display dialog.");
+        let finish_deletion_min_minutes   = Input::<usize>::new().with_prompt("Minimum grace period for jobs finished, but not downloaded (in minutes)").default(60*24).interact().expect("Couldn't display dialog.");
+        let finish_deletion_max_minutes   = Input::<usize>::new().with_prompt("Maximum grace period for jobs finished, but not downloaded (in minutes)").default(60*24*14).interact().expect("Couldn't display dialog.");
+        let download_deletion_min_minutes = Input::<usize>::new().with_prompt("Minimum grace period for jobs finished, and beeing downloaded (in minutes)").default(60*4).interact().expect("Couldn't display dialog.");
+        let download_deletion_max_minutes = Input::<usize>::new().with_prompt("Maximum grace period for jobs finished, and beeing downloaded (in minutes)").default(60*24*4).interact().expect("Couldn't display dialog.");
+        let cancel_deletion_min_minutes   = Input::<usize>::new().with_prompt("Minimum grace period for canceled jobs (in minutes)").default(15).interact().expect("Couldn't display dialog.");
+        let cancel_deletion_max_minutes   = Input::<usize>::new().with_prompt("Maximum grace period for canceled jobs (in minutes)").default(15).interact().expect("Couldn't display dialog.");
+
         Self{
-            checking_period_seconds: checking_period_seconds,
-            error_period_minutes: error_period_minutes,
-            finish_period_minutes: finish_period_minutes,
-            download_period_minutes: download_period_minutes
+            checking_period_seconds:       checking_period_seconds,
+            error_deletion_min_minutes:    error_deletion_min_minutes,
+            error_deletion_max_minutes:    error_deletion_max_minutes,
+            finish_deletion_min_minutes:   finish_deletion_min_minutes,
+            finish_deletion_max_minutes:   finish_deletion_max_minutes,
+            download_deletion_min_minutes: download_deletion_min_minutes,
+            download_deletion_max_minutes: download_deletion_max_minutes,
+            cancel_deletion_min_minutes:   cancel_deletion_min_minutes,
+            cancel_deletion_max_minutes:   cancel_deletion_max_minutes
         }
     }
 
@@ -591,26 +615,50 @@ impl Dialog for Janitor{
         match other{
             Some(o) => {
                 let checking_period_seconds = wizard::differ(self.checking_period_seconds, Some(o.checking_period_seconds));
-                let error_period_minutes = wizard::differ(self.error_period_minutes, Some(o.error_period_minutes));
-                let finish_period_minutes = wizard::differ(self.finish_period_minutes, Some(o.finish_period_minutes));
-                let download_period_minutes = wizard::differ(self.download_period_minutes, Some(o.download_period_minutes));
+
+                let error_deletion_min_minutes    = wizard::differ(self.error_deletion_min_minutes, Some(o.error_deletion_min_minutes));
+                let error_deletion_max_minutes    = wizard::differ(self.error_deletion_max_minutes, Some(o.error_deletion_max_minutes));
+                let finish_deletion_min_minutes   = wizard::differ(self.finish_deletion_min_minutes, Some(o.finish_deletion_min_minutes));
+                let finish_deletion_max_minutes   = wizard::differ(self.finish_deletion_max_minutes, Some(o.finish_deletion_max_minutes));
+                let download_deletion_min_minutes = wizard::differ(self.download_deletion_min_minutes, Some(o.download_deletion_min_minutes));
+                let download_deletion_max_minutes = wizard::differ(self.download_deletion_max_minutes, Some(o.download_deletion_max_minutes));
+                let cancel_deletion_min_minutes   = wizard::differ(self.cancel_deletion_min_minutes, Some(o.cancel_deletion_min_minutes));
+                let cancel_deletion_max_minutes   = wizard::differ(self.cancel_deletion_max_minutes, Some(o.cancel_deletion_max_minutes));
+                
                 Self{
-                    checking_period_seconds: checking_period_seconds,
-                    error_period_minutes: error_period_minutes,
-                    finish_period_minutes: finish_period_minutes,
-                    download_period_minutes: download_period_minutes
+                    checking_period_seconds:       checking_period_seconds,
+                    error_deletion_min_minutes:    error_deletion_min_minutes,
+                    error_deletion_max_minutes:    error_deletion_max_minutes,
+                    finish_deletion_min_minutes:   finish_deletion_min_minutes,
+                    finish_deletion_max_minutes:   finish_deletion_max_minutes,
+                    download_deletion_min_minutes: download_deletion_min_minutes,
+                    download_deletion_max_minutes: download_deletion_max_minutes,
+                    cancel_deletion_min_minutes:   cancel_deletion_min_minutes,
+                    cancel_deletion_max_minutes:   cancel_deletion_max_minutes
                 }
             },
             None => {
                 let checking_period_seconds = wizard::differ(self.checking_period_seconds, None);
-                let error_period_minutes = wizard::differ(self.error_period_minutes, None);
-                let finish_period_minutes = wizard::differ(self.finish_period_minutes, None);
-                let download_period_minutes = wizard::differ(self.download_period_minutes, None);
+
+                let error_deletion_min_minutes    = wizard::differ(self.error_deletion_min_minutes, None);
+                let error_deletion_max_minutes    = wizard::differ(self.error_deletion_max_minutes, None);
+                let finish_deletion_min_minutes   = wizard::differ(self.finish_deletion_min_minutes, None);
+                let finish_deletion_max_minutes   = wizard::differ(self.finish_deletion_max_minutes, None);
+                let download_deletion_min_minutes = wizard::differ(self.download_deletion_min_minutes, None);
+                let download_deletion_max_minutes = wizard::differ(self.download_deletion_max_minutes, None);
+                let cancel_deletion_min_minutes   = wizard::differ(self.cancel_deletion_min_minutes, None);
+                let cancel_deletion_max_minutes   = wizard::differ(self.cancel_deletion_max_minutes, None);
+                
                 Self{
-                    checking_period_seconds: checking_period_seconds,
-                    error_period_minutes: error_period_minutes,
-                    finish_period_minutes: finish_period_minutes,
-                    download_period_minutes: download_period_minutes
+                    checking_period_seconds:       checking_period_seconds,
+                    error_deletion_min_minutes:    error_deletion_min_minutes,
+                    error_deletion_max_minutes:    error_deletion_max_minutes,
+                    finish_deletion_min_minutes:   finish_deletion_min_minutes,
+                    finish_deletion_max_minutes:   finish_deletion_max_minutes,
+                    download_deletion_min_minutes: download_deletion_min_minutes,
+                    download_deletion_max_minutes: download_deletion_max_minutes,
+                    cancel_deletion_min_minutes:   cancel_deletion_min_minutes,
+                    cancel_deletion_max_minutes:   cancel_deletion_max_minutes
                 }
             }
         }
@@ -646,6 +694,7 @@ impl Default for Worker{
 
 impl Dialog for Worker{
     fn ask() -> Self{
+        println!("\nThe bender-worker is the client that actually executes tasks from the queue. It can run on the server or on a client. This configuration is only relevant for workers running on the server.\n");
         let disklimit = Input::<u64>::new().with_prompt("How much disk space should the worker keep free? (in GB)").default(2).interact().expect("Couldn't display dialog.");
         let grace_period = Input::<u64>::new().with_prompt("How long should downloaded blendfiles be kept around (ireelevant on server)? (in secs)").default(60).interact().expect("Couldn't display dialog.");
         let workload = Input::<usize>::new().with_prompt("How many frames should the worker render at once?").default(1).interact().expect("Couldn't display dialog.");
