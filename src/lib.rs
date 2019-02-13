@@ -554,6 +554,7 @@ impl Dialog for RabbitMQ{
 #[serde(default)]
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Janitor{
+    pub checking_period_seconds: usize,
     pub error_period_minutes: usize,
     pub finish_period_minutes: usize,
     pub download_period_minutes: usize
@@ -563,6 +564,7 @@ pub struct Janitor{
 impl Default for Janitor{
     fn default() -> Self{ 
         Self{
+            checking_period_seconds: 60,
             error_period_minutes: 240,
             finish_period_minutes: 240,
             download_period_minutes: 240
@@ -572,11 +574,13 @@ impl Default for Janitor{
 
 impl Dialog for Janitor{
     fn ask() -> Self{
+        let checking_period_seconds = Input::<usize>::new().with_prompt("How frequenctly should the janitor check for cleaning? (in seconds)").default(60).interact().expect("Couldn't display dialog.");
         let error_period_minutes = Input::<usize>::new().with_prompt("How long should a job be kept arround after error? (in minutes)").default(240).interact().expect("Couldn't display dialog.");
         let finish_period_minutes = Input::<usize>::new().with_prompt("How long should a job be kept arround after rendering ended? (in minutes)").default(240).interact().expect("Couldn't display dialog.");
         let download_period_minutes = Input::<usize>::new().with_prompt("How long should a job be kept arround after download? (in minutes)").default(240).interact().expect("Couldn't display dialog.");
         
         Self{
+            checking_period_seconds: checking_period_seconds,
             error_period_minutes: error_period_minutes,
             finish_period_minutes: finish_period_minutes,
             download_period_minutes: download_period_minutes
@@ -586,20 +590,24 @@ impl Dialog for Janitor{
     fn compare(&self, other: Option<&Self>) -> Self{
         match other{
             Some(o) => {
+                let checking_period_seconds = wizard::differ(self.checking_period_seconds, Some(o.checking_period_seconds));
                 let error_period_minutes = wizard::differ(self.error_period_minutes, Some(o.error_period_minutes));
                 let finish_period_minutes = wizard::differ(self.finish_period_minutes, Some(o.finish_period_minutes));
                 let download_period_minutes = wizard::differ(self.download_period_minutes, Some(o.download_period_minutes));
                 Self{
+                    checking_period_seconds: checking_period_seconds,
                     error_period_minutes: error_period_minutes,
                     finish_period_minutes: finish_period_minutes,
                     download_period_minutes: download_period_minutes
                 }
             },
             None => {
+                let checking_period_seconds = wizard::differ(self.checking_period_seconds, None);
                 let error_period_minutes = wizard::differ(self.error_period_minutes, None);
                 let finish_period_minutes = wizard::differ(self.finish_period_minutes, None);
                 let download_period_minutes = wizard::differ(self.download_period_minutes, None);
                 Self{
+                    checking_period_seconds: checking_period_seconds,
                     error_period_minutes: error_period_minutes,
                     finish_period_minutes: finish_period_minutes,
                     download_period_minutes: download_period_minutes
