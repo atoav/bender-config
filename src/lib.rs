@@ -167,6 +167,32 @@ impl Config{
         *self = deserialized;
         Ok(())
     }
+
+    /// The goto method to get a config file. This is what other services should
+    /// use. This relies on `bender-cli config path` to get the config path and
+    /// fails horribly if no config is present or no bender-cli is in PATH
+    pub fn get() -> Self{
+        let configpath = match path(){
+            Ok(c)     =>  c,
+            Err(_err)   =>  {
+                eprintln!("Error: Didn't find a server configuration. Install bender-cli and run bender-cli setup!");
+                std::process::exit(1);
+            }
+        };
+
+        if configpath.contains("There is no config.toml at"){
+            eprintln!("Error: There is no config.toml, use bender-cli to generate one");
+            std::process::exit(1);
+        }
+
+        match Config::from_file(configpath){
+            Ok(config) => config,
+            Err(err)   =>{
+                eprintln!("Error: Error while reading the configuration:{}", err);
+                std::process::exit(1);
+            }
+        }
+    }
 }
 
 
