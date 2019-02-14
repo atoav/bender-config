@@ -47,6 +47,7 @@ extern crate console;
 use rand::prelude::*;
 use rand::distributions::{Alphanumeric};
 
+use std::process::Command;
 use std::fs;
 use std::io::prelude::*;
 use std::path::PathBuf;
@@ -61,6 +62,19 @@ use wizard::Dialog;
 
 pub type GenError = Box<std::error::Error>;
 pub type GenResult<T> = Result<T, GenError>;
+
+
+
+/// Return the path of the configuration by running `bender-cli config path`
+pub fn path() -> GenResult<String>{
+    let out = Command::new("bender-cli")
+                       .arg("config")
+                       .arg("path")
+                       .output()?;
+
+    Ok(String::from_utf8_lossy(&out.stdout).to_string())
+}
+
 
 
 
