@@ -71,8 +71,17 @@ pub fn path() -> GenResult<String>{
                        .arg("config")
                        .arg("path")
                        .output()?;
-
-    Ok(String::from_utf8_lossy(&out.stdout).to_string())
+    let out = String::from_utf8_lossy(&out.stdout).to_string();
+    if !out.contains("Error"){
+        if std::path::PathBuf::from(out.clone()).exists(){
+            Ok(out)
+        }else{
+            let errmsg = format!("config.toml doesn't exist at path {}", out);
+            Err(From::from(errmsg))
+        }
+    }else{
+        Ok(out)
+    }
 }
 
 
