@@ -187,7 +187,7 @@ impl Config{
         }
 
         // Double check if the thing is really there
-        if std::path::PathBuf::from(configpath.clone()).exists(){
+        if !std::path::PathBuf::from(configpath.clone()).exists(){
             eprintln!("Error: There is no config.toml, use bender-cli to generate one");
             std::process::exit(1);
         }
