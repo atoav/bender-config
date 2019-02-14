@@ -180,15 +180,23 @@ impl Config{
             }
         };
 
+        // Check if bender-cli config path returned an error
         if configpath.contains("There is no config.toml at"){
             eprintln!("Error: There is no config.toml, use bender-cli to generate one");
             std::process::exit(1);
         }
 
+        // Double check if the thing is really there
+        if std::path::PathBuf::from(configpath.clone()).exists(){
+            eprintln!("Error: There is no config.toml, use bender-cli to generate one");
+            std::process::exit(1);
+        }
+
+        // Finally try to deserialize the dame thing
         match Config::from_file(configpath){
             Ok(config) => config,
             Err(err)   =>{
-                eprintln!("Error: Error while reading the configuration:{}", err);
+                eprintln!("Error: Error while deserializing the configuration: {}", err);
                 std::process::exit(1);
             }
         }
