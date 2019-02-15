@@ -442,10 +442,7 @@ impl PathMethods for Path{
 
 impl Dialog for Paths{
     fn ask() -> Self{
-        let config = Input::<String>::new().with_prompt("Specify the path where bender's config.toml should be stored")
-                                           .default("/etc/bender/config.toml".to_string())
-                                           .interact()
-                                           .expect("Couldn't display dialog.");
+        let config = "/etc/bender/config.toml".to_string();
 
         let private = Input::<String>::new().with_prompt("Specify the directory where the app.secret for flaskbender should be stored")
                                            .default("/var/lib/flask/private".to_string())
@@ -467,7 +464,7 @@ impl Dialog for Paths{
     fn compare(&self, other: Option<&Self>) -> Self{
         match other{
             Some(o) => {
-                let config = wizard::differ(self.config.clone(), Some(o.config.clone()));
+                let config = "/etc/bender/config.toml".to_string();
                 let private = wizard::differ(self.private.clone(), Some(o.private.clone()));
                 let upload = wizard::differ(self.upload.clone(), Some(o.upload.clone()));
                 Self{
@@ -477,7 +474,7 @@ impl Dialog for Paths{
                 }
             },
             None => {
-                let config = wizard::differ(self.config.clone(), None);
+                let config = "/etc/bender/config.toml".to_string();
                 let private = wizard::differ(self.private.clone(), None);
                 let upload = wizard::differ(self.upload.clone(), None);
                 Self{
