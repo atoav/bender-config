@@ -72,6 +72,7 @@ pub fn path() -> GenResult<String>{
                        .arg("path")
                        .output()?;
     let out = String::from_utf8_lossy(&out.stdout).to_string();
+    dbg!(out.clone());
     if !out.contains("Error"){
         if std::path::PathBuf::from(out.clone()).exists(){
             Ok(out)
@@ -183,8 +184,8 @@ impl Config{
     pub fn get() -> Self{
         let configpath = match path(){
             Ok(c)     =>  c,
-            Err(_err)   =>  {
-                eprintln!("Error: Didn't find a server configuration. Install bender-cli and run bender-cli setup!");
+            Err(_err) =>  {
+                eprintln!("Error: Didn't find a server configuration. Install bender-cli and run bender-cli setup! {}", _err);
                 std::process::exit(1);
             }
         };
