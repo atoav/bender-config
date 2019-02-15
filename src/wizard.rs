@@ -1,11 +1,12 @@
-/// With the wizard a configuration can be created interactively
-/// There are two main cases:
-/// A) A new configuration should be generated
-/// B) A existing configuration should be updated
+//! With the wizard a configuration can be created interactively
+//! There are two main cases:
+//! A) A new configuration should be generated
+//! B) A existing configuration should be updated
 use ::*;
 use std::str;
 use std::fmt::{Display, Debug};
 use console::Term;
+use colored::*;
 
 
 pub trait Dialog {
@@ -42,7 +43,7 @@ pub fn differ<T>(this: T, opt_that: Option<T>) -> T
             } 
         },
         None      => {
-            println!("Old value: {}", &this);
+            println!("{} {}", "Existing value".black().on_white(), format!("{}", &this).bold());
             let choice = Select::new()
                             .item("Keep")
                             .item("Manual override")
@@ -100,3 +101,33 @@ fn width() -> usize{
     let term = Term::stdout();
     term.size().1 as usize
 }
+
+
+
+
+// Print a errorlabel
+#[allow(dead_code)]
+pub fn errorprint<S>(s: S) where S: Into<String>{
+    let s = s.into();
+    let label = " Error ".on_red().bold();
+    eprintln!("    {} {}", label, s);
+}
+
+// Print a errorlabel
+#[allow(dead_code)]
+pub fn okprint<S>(s: S) where S: Into<String>{
+    let s = s.into();
+    let label = "   OK  ".on_green().bold();
+    println!("    {} {}", label, s);
+}
+
+
+/// Print a section label like ---------------- foo ----------------
+pub fn print_sectionlabel<S>(message: S) where S: Into<String>{
+    let message = message.into();
+    let screen_width = width();
+    println!("{}", "-".repeat(screen_width));
+    println!("{:^width$}", message, width=screen_width);
+    println!("{}", "-".repeat(screen_width));
+}
+

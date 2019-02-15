@@ -43,6 +43,7 @@ extern crate hex;
 extern crate uuid;
 extern crate dialoguer;
 extern crate console;
+extern crate colored;
 
 use rand::prelude::*;
 use rand::distributions::{Alphanumeric};
@@ -57,7 +58,7 @@ use dialoguer::{Select, Input};
 
 
 pub mod wizard;
-use wizard::Dialog;
+use wizard::{Dialog, print_sectionlabel};
 
 
 pub type GenError = Box<std::error::Error>;
@@ -445,6 +446,8 @@ impl PathMethods for Path{
 
 impl Dialog for Paths{
     fn ask() -> Self{
+        println!();
+        print_sectionlabel("Paths");
         let config = "/etc/bender/config.toml".to_string();
 
         let private = Input::<String>::new().with_prompt("Specify the directory where the app.secret for flaskbender should be stored")
@@ -467,7 +470,8 @@ impl Dialog for Paths{
     fn compare(&self, other: Option<&Self>) -> Self{
         match other{
             Some(o) => {
-                println!("\n-------------------- paths ------------------------");
+                println!();
+                print_sectionlabel("Paths");
                 let config = "/etc/bender/config.toml".to_string();
                 println!("\nconfig.paths.private (where the app.secret is stored)");
                 let private = wizard::differ(self.private.clone(), Some(o.private.clone()));
@@ -480,7 +484,8 @@ impl Dialog for Paths{
                 }
             },
             None => {
-                println!("\n-------------------- paths ------------------------");
+                println!();
+                print_sectionlabel("Paths");
                 let config = "/etc/bender/config.toml".to_string();
                 println!("\nconfig.paths.private (where the app.secret is stored)");
                 let private = wizard::differ(self.private.clone(), None);
@@ -522,6 +527,8 @@ impl Default for Flaskbender{
 
 impl Dialog for Flaskbender{
     fn ask() -> Self{
+        println!();
+        print_sectionlabel("Flaskbender");
         let upload_limit = Input::<usize>::new().with_prompt("The maximum upload size in GB")
                                                 .default(2)
                                                 .interact()
@@ -540,9 +547,10 @@ impl Dialog for Flaskbender{
     }
 
     fn compare(&self, other: Option<&Self>) -> Self{
+        println!();
+        print_sectionlabel("Flaskbender");
         match other{
             Some(o) => {
-                println!("\n ---------------------- flaskbender ----------------------");
                 println!("\nThe upload limit (max file size) in GB");
                 let upload_limit = wizard::differ(self.upload_limit.clone(), Some(o.upload_limit.clone()));
                 // let upload_url = wizard::differ(self.upload_url.clone(), Some(o.upload_url.clone()));
@@ -555,7 +563,6 @@ impl Dialog for Flaskbender{
                 }
             },
             None => {
-                println!("\n ---------------------- flaskbender ----------------------");
                 println!("\nThe upload limit (max file size) in GB");
                 let upload_limit = wizard::differ(self.upload_limit.clone(), None);
                 // let upload_url = wizard::differ(self.upload_url.clone(), Some(o.upload_url.clone()));
@@ -592,6 +599,8 @@ impl Default for RabbitMQ{
 
 impl Dialog for RabbitMQ{
     fn ask() -> Self{
+        println!();
+        print_sectionlabel("RabbitMQ");
         let url = Input::<String>::new().with_prompt("RabbitMQ URL").default( "amqp://localhost//".to_string()).interact().expect("Couldn't display dialog.");
         
         Self{
@@ -600,16 +609,18 @@ impl Dialog for RabbitMQ{
     }
 
     fn compare(&self, other: Option<&Self>) -> Self{
+        println!();
+        print_sectionlabel("RabbitMQ");
         match other{
             Some(o) => {
-                println!("The AMQP URL for e.g. RabbitMQ");
+                println!("\nThe AMQP URL for e.g. RabbitMQ");
                 let url = wizard::differ(self.url.clone(), Some(o.url.clone()));
                 Self{
                     url: url
                 }
             },
             None => {
-                println!("The AMQP URL for e.g. RabbitMQ");
+                println!("\nThe AMQP URL for e.g. RabbitMQ");
                 let url = wizard::differ(self.url.clone(), None);
                 Self{
                     url: url
@@ -655,8 +666,9 @@ impl Default for Janitor{
 
 impl Dialog for Janitor{
     fn ask() -> Self{
-
-        println!("\nThe bender-janitor service cleans up jobs and job files that have somehow ended (e.g. canceled, errored, finished etc)");
+        println!();
+        print_sectionlabel("bender-janitor");
+        println!("The bender-janitor service cleans up jobs and job files that have somehow ended (e.g. canceled, errored, finished etc)");
         let checking_period_seconds = Input::<usize>::new().with_prompt("How frequenctly should the janitor check for cleaning? (in seconds)").default(60).interact().expect("Couldn't display dialog.");
         
         println!("\nThe bender-janitor will dynamically decide when to keep a job around for longer (e.g. when there is a lot of free disk space) and when to delete these jobs. You can specify minimum and maximum times:");
@@ -683,9 +695,10 @@ impl Dialog for Janitor{
     }
 
     fn compare(&self, other: Option<&Self>) -> Self{
+        println!();
+        print_sectionlabel("bender-janitor");
         match other{
             Some(o) => {
-                println!("\n-------------------- bender-janitor ------------------");
                 println!("\nHow often should the janitor check for cleanup?");
                 let checking_period_seconds = wizard::differ(self.checking_period_seconds, Some(o.checking_period_seconds));
 
@@ -719,7 +732,6 @@ impl Dialog for Janitor{
                 }
             },
             None => {
-                println!("\n-------------------- bender-janitor ------------------");
                 println!("\nHow often should the janitor check for cleanup?");
                 let checking_period_seconds = wizard::differ(self.checking_period_seconds, None);
 
@@ -785,24 +797,27 @@ impl Default for Worker{
 
 impl Dialog for Worker{
     fn ask() -> Self{
-        println!("\nThe bender-worker is the client that actually executes tasks from the queue. It can run on the server or on a client. This configuration is only relevant for workers running on the server.\n");
+        println!();
+        print_sectionlabel("bender-worker");
+        println!("The bender-worker is the client that actually executes tasks from the queue. It can run on the server or on a client. This configuration is only relevant for workers running on the server.\n");
         let disklimit = Input::<u64>::new().with_prompt("How much disk space should the worker keep free? (in GB)").default(2).interact().expect("Couldn't display dialog.");
         let grace_period = Input::<u64>::new().with_prompt("How long should downloaded blendfiles be kept around (ireelevant on server)? (in secs)").default(60).interact().expect("Couldn't display dialog.");
         let workload = Input::<usize>::new().with_prompt("How many frames should the worker render at once?").default(1).interact().expect("Couldn't display dialog.");
         
         Self{
             id: Uuid::new_v4(),                // Worker Random ID asigned uppon config
-            disklimit: disklimit*1e9 as u64,   // in GB
+            disklimit: disklimit,              // in GB
             grace_period: grace_period,        // How many seconds to keep blendfiles,
             workload: workload                 // How many frames to render at once
         }
     }
 
     fn compare(&self, other: Option<&Self>) -> Self{
+        println!();
+        print_sectionlabel("bender-worker");
         match other{
             Some(o) => {
-                println!("\n----------------- bender-worker ----------------");
-                println!("\nThe Workers disklimit in GB (if ecceded don't accept new jobs)");
+                println!("\nThe Workers disklimit in GB (if exceeded don't accept new jobs)");
                 let disklimit = wizard::differ(self.disklimit, Some(o.disklimit));
                 println!("\nThe Workers grace period (how long downloaded blendfiles are kept around in seconds - irrelevant for server");
                 let grace_period = wizard::differ(self.grace_period, Some(o.grace_period));
@@ -818,7 +833,7 @@ impl Dialog for Worker{
             },
             None => {
                 println!("\n----------------- bender-worker ----------------");
-                println!("\nThe Workers disklimit in GB (if ecceded don't accept new jobs)");
+                println!("\nThe Workers disklimit in GB (if exceeded don't accept new jobs)");
                 let disklimit = wizard::differ(self.disklimit, None);
                 println!("\nThe Workers grace period (how long downloaded blendfiles are kept around in seconds - irrelevant for server");
                 let grace_period = wizard::differ(self.grace_period, None);
