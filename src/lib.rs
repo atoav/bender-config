@@ -71,7 +71,8 @@ pub fn path() -> GenResult<String>{
                        .arg("config")
                        .arg("path")
                        .output()?;
-    let out = String::from_utf8_lossy(&out.stdout).to_string();
+    let mut out = String::from_utf8_lossy(&out.stdout).to_string();
+    let out = out.trim();
     dbg!(out.clone());
     if !out.contains("Error"){
         if std::path::PathBuf::from(out.clone()).exists(){
