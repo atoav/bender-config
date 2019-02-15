@@ -58,7 +58,7 @@ use dialoguer::{Select, Input};
 
 
 pub mod wizard;
-use wizard::{Dialog, print_sectionlabel};
+use wizard::{Dialog, print_sectionlabel, print_block};
 
 
 pub type GenError = Box<std::error::Error>;
@@ -236,7 +236,7 @@ impl Dialog for Config{
     fn compare(&self, other: Option<&Self>) -> Self{
         match other{
             Some(o) => {
-                println!("The server name (shows up in frontend)");
+                print_block("The server name (shows up in frontend)");
                 let servername = wizard::differ(self.servername.clone(), Some(o.servername.clone()));
                 Self{
                     servername: servername,
@@ -248,7 +248,7 @@ impl Dialog for Config{
                 }
             },
             None => {
-                println!("The server name (shows up in frontend)");
+                print_block("The server name (shows up in frontend)");
                 let servername = wizard::differ(self.servername.clone(), None);
                 Self{
                     servername: servername,
@@ -468,14 +468,14 @@ impl Dialog for Paths{
     }
 
     fn compare(&self, other: Option<&Self>) -> Self{
+        println!();
+        print_sectionlabel("Paths");
         match other{
             Some(o) => {
-                println!();
-                print_sectionlabel("Paths");
                 let config = "/etc/bender/config.toml".to_string();
-                println!("\nconfig.paths.private (where the app.secret is stored)");
+                print_block("\nconfig.paths.private (where the app.secret is stored)");
                 let private = wizard::differ(self.private.clone(), Some(o.private.clone()));
-                println!("\nconfig.paths.upload (where the both the uploaded blendfiles and the rendered frames are stored)");
+                print_block("\nconfig.paths.upload (where the both the uploaded blendfiles and the rendered frames are stored)");
                 let upload = wizard::differ(self.upload.clone(), Some(o.upload.clone()));
                 Self{
                     config: config,
@@ -484,12 +484,10 @@ impl Dialog for Paths{
                 }
             },
             None => {
-                println!();
-                print_sectionlabel("Paths");
                 let config = "/etc/bender/config.toml".to_string();
-                println!("\nconfig.paths.private (where the app.secret is stored)");
+                print_block("\nconfig.paths.private (where the app.secret is stored)");
                 let private = wizard::differ(self.private.clone(), None);
-                println!("\nconfig.paths.upload (where the both the uploaded blendfiles and the rendered frames are stored)");
+                print_block("\nconfig.paths.upload (where the both the uploaded blendfiles and the rendered frames are stored)");
                 let upload = wizard::differ(self.upload.clone(), None);
                 Self{
                     config: config,
@@ -551,10 +549,10 @@ impl Dialog for Flaskbender{
         print_sectionlabel("Flaskbender");
         match other{
             Some(o) => {
-                println!("\nThe upload limit (max file size) in GB");
+                print_block("\nThe upload limit (max file size) in GB");
                 let upload_limit = wizard::differ(self.upload_limit.clone(), Some(o.upload_limit.clone()));
                 // let upload_url = wizard::differ(self.upload_url.clone(), Some(o.upload_url.clone()));
-                println!("\nThe name of the secure cookie in which the client stores it's job ids");
+                print_block("\nThe name of the secure cookie in which the client stores it's job ids");
                 let job_cookie_name = wizard::differ(self.job_cookie_name.clone(), Some(o.job_cookie_name.clone()));
                 Self{
                     upload_limit: upload_limit,
@@ -563,10 +561,10 @@ impl Dialog for Flaskbender{
                 }
             },
             None => {
-                println!("\nThe upload limit (max file size) in GB");
+                print_block("\nThe upload limit (max file size) in GB");
                 let upload_limit = wizard::differ(self.upload_limit.clone(), None);
                 // let upload_url = wizard::differ(self.upload_url.clone(), Some(o.upload_url.clone()));
-                println!("\nThe name of the secure cookie in which the client stores it's job ids");
+                print_block("\nThe name of the secure cookie in which the client stores it's job ids");
                 let job_cookie_name = wizard::differ(self.job_cookie_name.clone(), None);
                 Self{
                     upload_limit: upload_limit,
@@ -699,24 +697,24 @@ impl Dialog for Janitor{
         print_sectionlabel("bender-janitor");
         match other{
             Some(o) => {
-                println!("\nHow often should the janitor check for cleanup?");
+                print_block("\nHow often should the janitor check for cleanup?");
                 let checking_period_seconds = wizard::differ(self.checking_period_seconds, Some(o.checking_period_seconds));
 
-                println!("\nMinimum: How long to keep jobs after Error?");
+                print_block("\nMinimum: How long to keep jobs after Error?");
                 let error_deletion_min_minutes    = wizard::differ(self.error_deletion_min_minutes, Some(o.error_deletion_min_minutes));
-                println!("\nMaximum: How long to keep jobs after Error?");
+                print_block("\nMaximum: How long to keep jobs after Error?");
                 let error_deletion_max_minutes    = wizard::differ(self.error_deletion_max_minutes, Some(o.error_deletion_max_minutes));
-                println!("\nMinimum: How long to keep jobs after finish?");
+                print_block("\nMinimum: How long to keep jobs after finish?");
                 let finish_deletion_min_minutes   = wizard::differ(self.finish_deletion_min_minutes, Some(o.finish_deletion_min_minutes));
-                println!("\nMaximum: How long to keep jobs after finish?");
+                print_block("\nMaximum: How long to keep jobs after finish?");
                 let finish_deletion_max_minutes   = wizard::differ(self.finish_deletion_max_minutes, Some(o.finish_deletion_max_minutes));
-                println!("\nMinimum: How long to keep jobs after download?");
+                print_block("\nMinimum: How long to keep jobs after download?");
                 let download_deletion_min_minutes = wizard::differ(self.download_deletion_min_minutes, Some(o.download_deletion_min_minutes));
-                println!("\nMaximum: How long to keep jobs after download?");
+                print_block("\nMaximum: How long to keep jobs after download?");
                 let download_deletion_max_minutes = wizard::differ(self.download_deletion_max_minutes, Some(o.download_deletion_max_minutes));
-                println!("\nMinimum: How long to keep jobs after cancelation?");
+                print_block("\nMinimum: How long to keep jobs after cancelation?");
                 let cancel_deletion_min_minutes   = wizard::differ(self.cancel_deletion_min_minutes, Some(o.cancel_deletion_min_minutes));
-                println!("\nMaximum: How long to keep jobs after cancelation?");
+                print_block("\nMaximum: How long to keep jobs after cancelation?");
                 let cancel_deletion_max_minutes   = wizard::differ(self.cancel_deletion_max_minutes, Some(o.cancel_deletion_max_minutes));
                 
                 Self{
@@ -732,24 +730,24 @@ impl Dialog for Janitor{
                 }
             },
             None => {
-                println!("\nHow often should the janitor check for cleanup?");
+                print_block("\nHow often should the janitor check for cleanup?");
                 let checking_period_seconds = wizard::differ(self.checking_period_seconds, None);
 
-                println!("\nMinimum: How long to keep jobs after Error?");
+                print_block("\nMinimum: How long to keep jobs after Error?");
                 let error_deletion_min_minutes    = wizard::differ(self.error_deletion_min_minutes, None);
-                println!("\nMaximum: How long to keep jobs after Error?");
+                print_block("\nMaximum: How long to keep jobs after Error?");
                 let error_deletion_max_minutes    = wizard::differ(self.error_deletion_max_minutes, None);
-                println!("\nMinimum: How long to keep jobs after finish?");
+                print_block("\nMinimum: How long to keep jobs after finish?");
                 let finish_deletion_min_minutes   = wizard::differ(self.finish_deletion_min_minutes, None);
-                println!("\nMaximum: How long to keep jobs after finish?");
+                print_block("\nMaximum: How long to keep jobs after finish?");
                 let finish_deletion_max_minutes   = wizard::differ(self.finish_deletion_max_minutes, None);
-                println!("\nMinimum: How long to keep jobs after download?");
+                print_block("\nMinimum: How long to keep jobs after download?");
                 let download_deletion_min_minutes = wizard::differ(self.download_deletion_min_minutes, None);
-                println!("\nMaximum: How long to keep jobs after download?");
+                print_block("\nMaximum: How long to keep jobs after download?");
                 let download_deletion_max_minutes = wizard::differ(self.download_deletion_max_minutes, None);
-                println!("\nMinimum: How long to keep jobs after cancelation?");
+                print_block("\nMinimum: How long to keep jobs after cancelation?");
                 let cancel_deletion_min_minutes   = wizard::differ(self.cancel_deletion_min_minutes, None);
-                println!("\nMaximum: How long to keep jobs after cancelation?");
+                print_block("\nMaximum: How long to keep jobs after cancelation?");
                 let cancel_deletion_max_minutes   = wizard::differ(self.cancel_deletion_max_minutes, None);
                 
                 Self{
@@ -817,11 +815,11 @@ impl Dialog for Worker{
         print_sectionlabel("bender-worker");
         match other{
             Some(o) => {
-                println!("\nThe Workers disklimit in GB (if exceeded don't accept new jobs)");
+                print_block("\nThe Workers disklimit in GB (if exceeded don't accept new jobs)");
                 let disklimit = wizard::differ(self.disklimit, Some(o.disklimit));
-                println!("\nThe Workers grace period (how long downloaded blendfiles are kept around in seconds - irrelevant for server");
+                print_block("\nThe Workers grace period (how long downloaded blendfiles are kept around in seconds - irrelevant for server");
                 let grace_period = wizard::differ(self.grace_period, Some(o.grace_period));
-                println!("\nHow many frames should a worker accept at once?");
+                print_block("\nHow many frames should a worker accept at once?");
                 let workload = wizard::differ(self.workload, Some(o.workload));
 
                 Self{
@@ -832,12 +830,12 @@ impl Dialog for Worker{
                 }
             },
             None => {
-                println!("\n----------------- bender-worker ----------------");
-                println!("\nThe Workers disklimit in GB (if exceeded don't accept new jobs)");
+                print_block("\n----------------- bender-worker ----------------");
+                print_block("\nThe Workers disklimit in GB (if exceeded don't accept new jobs)");
                 let disklimit = wizard::differ(self.disklimit, None);
-                println!("\nThe Workers grace period (how long downloaded blendfiles are kept around in seconds - irrelevant for server");
+                print_block("\nThe Workers grace period (how long downloaded blendfiles are kept around in seconds - irrelevant for server");
                 let grace_period = wizard::differ(self.grace_period, None);
-                println!("\nHow many frames should a worker accept at once?");
+                print_block("\nHow many frames should a worker accept at once?");
                 let workload = wizard::differ(self.workload, None);
 
                 Self{
