@@ -611,14 +611,14 @@ impl Dialog for RabbitMQ{
         print_sectionlabel("RabbitMQ");
         match other{
             Some(o) => {
-                println!("\nThe AMQP URL for e.g. RabbitMQ");
+                print_block("\n The AMQP URL for e.g. RabbitMQ ");
                 let url = wizard::differ(self.url.clone(), Some(o.url.clone()));
                 Self{
                     url: url
                 }
             },
             None => {
-                println!("\nThe AMQP URL for e.g. RabbitMQ");
+                print_block("\n The AMQP URL for e.g. RabbitMQ ");
                 let url = wizard::differ(self.url.clone(), None);
                 Self{
                     url: url

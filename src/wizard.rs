@@ -134,7 +134,7 @@ pub fn print_sectionlabel<S>(message: S) where S: Into<String>{
 /// Print a a block
 pub fn print_block<S>(message: S) where S: Into<String>{
     let message = message.into();
-    println!("{}", message.black().on_green());
+    println!("{}", message.black().on_white());
 }
 
 
