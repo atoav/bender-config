@@ -639,8 +639,6 @@ pub struct Janitor{
     pub error_deletion_max_minutes:    usize,
     pub finish_deletion_min_minutes:   usize,
     pub finish_deletion_max_minutes:   usize,
-    pub download_deletion_min_minutes: usize,
-    pub download_deletion_max_minutes: usize,
     pub cancel_deletion_min_minutes:   usize,
     pub cancel_deletion_max_minutes:   usize
 }
@@ -654,8 +652,6 @@ impl Default for Janitor{
             error_deletion_max_minutes: 60*24*14,
             finish_deletion_min_minutes: 60*24,
             finish_deletion_max_minutes: 60*24*14,
-            download_deletion_min_minutes: 60*4,
-            download_deletion_max_minutes: 60*24*4,
             cancel_deletion_min_minutes: 15,
             cancel_deletion_max_minutes: 15
         }
@@ -674,8 +670,6 @@ impl Dialog for Janitor{
         let error_deletion_max_minutes    = Input::<usize>::new().with_prompt("Maximum grace period for deletion after error (in minutes)").default(60*24*14).interact().expect("Couldn't display dialog.");
         let finish_deletion_min_minutes   = Input::<usize>::new().with_prompt("Minimum grace period for jobs finished, but not downloaded (in minutes)").default(60*24).interact().expect("Couldn't display dialog.");
         let finish_deletion_max_minutes   = Input::<usize>::new().with_prompt("Maximum grace period for jobs finished, but not downloaded (in minutes)").default(60*24*14).interact().expect("Couldn't display dialog.");
-        let download_deletion_min_minutes = Input::<usize>::new().with_prompt("Minimum grace period for jobs finished, and beeing downloaded (in minutes)").default(60*4).interact().expect("Couldn't display dialog.");
-        let download_deletion_max_minutes = Input::<usize>::new().with_prompt("Maximum grace period for jobs finished, and beeing downloaded (in minutes)").default(60*24*4).interact().expect("Couldn't display dialog.");
         let cancel_deletion_min_minutes   = Input::<usize>::new().with_prompt("Minimum grace period for canceled jobs (in minutes)").default(15).interact().expect("Couldn't display dialog.");
         let cancel_deletion_max_minutes   = Input::<usize>::new().with_prompt("Maximum grace period for canceled jobs (in minutes)").default(15).interact().expect("Couldn't display dialog.");
 
@@ -685,8 +679,6 @@ impl Dialog for Janitor{
             error_deletion_max_minutes:    error_deletion_max_minutes,
             finish_deletion_min_minutes:   finish_deletion_min_minutes,
             finish_deletion_max_minutes:   finish_deletion_max_minutes,
-            download_deletion_min_minutes: download_deletion_min_minutes,
-            download_deletion_max_minutes: download_deletion_max_minutes,
             cancel_deletion_min_minutes:   cancel_deletion_min_minutes,
             cancel_deletion_max_minutes:   cancel_deletion_max_minutes
         }
@@ -708,10 +700,6 @@ impl Dialog for Janitor{
                 let finish_deletion_min_minutes   = wizard::differ(self.finish_deletion_min_minutes, Some(o.finish_deletion_min_minutes));
                 print_block("\n Maximum: How long to keep jobs after finish? (in minutes) ");
                 let finish_deletion_max_minutes   = wizard::differ(self.finish_deletion_max_minutes, Some(o.finish_deletion_max_minutes));
-                print_block("\n Minimum: How long to keep jobs after download? (in minutes) ");
-                let download_deletion_min_minutes = wizard::differ(self.download_deletion_min_minutes, Some(o.download_deletion_min_minutes));
-                print_block("\n Maximum: How long to keep jobs after download? (in minutes) ");
-                let download_deletion_max_minutes = wizard::differ(self.download_deletion_max_minutes, Some(o.download_deletion_max_minutes));
                 print_block("\n Minimum: How long to keep jobs after cancelation? (in minutes) ");
                 let cancel_deletion_min_minutes   = wizard::differ(self.cancel_deletion_min_minutes, Some(o.cancel_deletion_min_minutes));
                 print_block("\n Maximum: How long to keep jobs after cancelation? (in minutes) ");
@@ -723,8 +711,6 @@ impl Dialog for Janitor{
                     error_deletion_max_minutes:    error_deletion_max_minutes,
                     finish_deletion_min_minutes:   finish_deletion_min_minutes,
                     finish_deletion_max_minutes:   finish_deletion_max_minutes,
-                    download_deletion_min_minutes: download_deletion_min_minutes,
-                    download_deletion_max_minutes: download_deletion_max_minutes,
                     cancel_deletion_min_minutes:   cancel_deletion_min_minutes,
                     cancel_deletion_max_minutes:   cancel_deletion_max_minutes
                 }
@@ -741,10 +727,6 @@ impl Dialog for Janitor{
                 let finish_deletion_min_minutes   = wizard::differ(self.finish_deletion_min_minutes, None);
                 print_block("\n Maximum: How long to keep jobs after finish? (in minutes) ");
                 let finish_deletion_max_minutes   = wizard::differ(self.finish_deletion_max_minutes, None);
-                print_block("\n Minimum: How long to keep jobs after download? (in minutes) ");
-                let download_deletion_min_minutes = wizard::differ(self.download_deletion_min_minutes, None);
-                print_block("\n Maximum: How long to keep jobs after download? (in minutes) ");
-                let download_deletion_max_minutes = wizard::differ(self.download_deletion_max_minutes, None);
                 print_block("\n Minimum: How long to keep jobs after cancelation? (in minutes) ");
                 let cancel_deletion_min_minutes   = wizard::differ(self.cancel_deletion_min_minutes, None);
                 print_block("\n Maximum: How long to keep jobs after cancelation? (in minutes) ");
@@ -756,8 +738,6 @@ impl Dialog for Janitor{
                     error_deletion_max_minutes:    error_deletion_max_minutes,
                     finish_deletion_min_minutes:   finish_deletion_min_minutes,
                     finish_deletion_max_minutes:   finish_deletion_max_minutes,
-                    download_deletion_min_minutes: download_deletion_min_minutes,
-                    download_deletion_max_minutes: download_deletion_max_minutes,
                     cancel_deletion_min_minutes:   cancel_deletion_min_minutes,
                     cancel_deletion_max_minutes:   cancel_deletion_max_minutes
                 }
