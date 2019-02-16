@@ -43,7 +43,7 @@ pub fn differ<T>(this: T, opt_that: Option<T>) -> T
             } 
         },
         None      => {
-            println!("{} -> {}", " Existing value ".black().on_green(), format!("{}", &this).bold());
+            println!("{}{}", " Existing value -> ".black().on_yellow(), format!(" {} ", &this).black().on_green());
             let choice = Select::new()
                             .item("Keep")
                             .item("Manual override")
@@ -134,7 +134,7 @@ pub fn print_sectionlabel<S>(message: S) where S: Into<String>{
 /// Print a a block
 pub fn print_block<S>(message: S) where S: Into<String>{
     let message = message.into();
-    println!("{}", message.black().on_white());
+    println!("{}", message.black().on_bright_white());
 }
 
 
