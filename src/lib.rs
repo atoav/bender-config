@@ -89,7 +89,7 @@ pub fn path() -> GenResult<String>{
 
 
 
-// ============================== CONFIG STRUCT ================================
+// ============================= CONFIG STRUCT ===============================
 
 #[serde(default)]
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -224,7 +224,7 @@ impl Dialog for Config{
                                         .expect("Couldn't display dialog.");
         
         Self{
-            servername: servername,
+            servername,
             paths: Paths::ask(),
             flaskbender: Flaskbender::ask(),
             rabbitmq: RabbitMQ::ask(),
@@ -239,7 +239,7 @@ impl Dialog for Config{
                 print_block(" The server name (shows up in frontend) ");
                 let servername = wizard::differ(self.servername.clone(), Some(o.servername.clone()));
                 Self{
-                    servername: servername,
+                    servername,
                     paths: self.paths.compare(Some(&o.paths)),
                     flaskbender: self.flaskbender.compare(Some(&o.flaskbender)),
                     rabbitmq: self.rabbitmq.compare(Some(&o.rabbitmq)),
@@ -251,7 +251,7 @@ impl Dialog for Config{
                 print_block(" The server name (shows up in frontend) ");
                 let servername = wizard::differ(self.servername.clone(), None);
                 Self{
-                    servername: servername,
+                    servername,
                     paths: self.paths.compare(None),
                     flaskbender: self.flaskbender.compare(None),
                     rabbitmq: self.rabbitmq.compare(None),
@@ -335,7 +335,7 @@ impl Config {
 
 
 
-// =============================== PATHS STRUCT ================================
+// ============================== PATHS STRUCT ===============================
 #[serde(default)]
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Paths{
@@ -398,10 +398,7 @@ impl PathMethods for Path{
                     Ok(f) => {
                         match f.metadata(){
                             Ok(metadata) => {
-                                match metadata.len(){
-                                    0 => fs::remove_file(p)?,
-                                    _ => ()
-                                }
+                                if let 0 = metadata.len() { fs::remove_file(p)?}
                             },
                             Err(err) => eprintln!("Error while retrieving metadata: {}", err)
                         }
@@ -461,9 +458,9 @@ impl Dialog for Paths{
                                            .expect("Couldn't display dialog.");
         
         Self{
-            config: config,
-            private: private,
-            upload: upload,
+            config,
+            private,
+            upload,
         }
     }
 
@@ -478,9 +475,9 @@ impl Dialog for Paths{
                 print_block("\n config.paths.upload (where the both the uploaded blendfiles and the rendered frames are stored) ");
                 let upload = wizard::differ(self.upload.clone(), Some(o.upload.clone()));
                 Self{
-                    config: config,
-                    private: private,
-                    upload: upload,
+                    config,
+                    private,
+                    upload,
                 }
             },
             None => {
@@ -490,9 +487,9 @@ impl Dialog for Paths{
                 print_block("\n config.paths.upload (where the both the uploaded blendfiles and the rendered frames are stored) ");
                 let upload = wizard::differ(self.upload.clone(), None);
                 Self{
-                    config: config,
-                    private: private,
-                    upload: upload,
+                    config,
+                    private,
+                    upload,
                 }
             }
         }
@@ -503,7 +500,7 @@ impl Dialog for Paths{
 
 
 
-// =========================== FLASKBENDER STRUCT ==============================
+// ========================== FLASKBENDER STRUCT =============================
 #[serde(default)]
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Flaskbender{
@@ -538,9 +535,9 @@ impl Dialog for Flaskbender{
                                                     .expect("Couldn't display dialog.");
         
         Self{
-            upload_limit: upload_limit,
+            upload_limit,
             upload_url: "http://localhost:5000/blendfiles/".to_string(),
-            job_cookie_name: job_cookie_name,
+            job_cookie_name,
         }
     }
 
@@ -550,26 +547,26 @@ impl Dialog for Flaskbender{
         match other{
             Some(o) => {
                 print_block("\n The upload limit (max file size) in GB ");
-                let upload_limit = wizard::differ(self.upload_limit.clone(), Some(o.upload_limit.clone()));
+                let upload_limit = wizard::differ(self.upload_limit, Some(o.upload_limit));
                 // let upload_url = wizard::differ(self.upload_url.clone(), Some(o.upload_url.clone()));
                 print_block("\n The name of the secure cookie in which the client stores it's job ids ");
                 let job_cookie_name = wizard::differ(self.job_cookie_name.clone(), Some(o.job_cookie_name.clone()));
                 Self{
-                    upload_limit: upload_limit,
+                    upload_limit,
                     upload_url: "http://localhost:5000/blendfiles/".to_string(),
-                    job_cookie_name: job_cookie_name,
+                    job_cookie_name,
                 }
             },
             None => {
                 print_block("\n The upload limit (max file size) in GB ");
-                let upload_limit = wizard::differ(self.upload_limit.clone(), None);
+                let upload_limit = wizard::differ(self.upload_limit, None);
                 // let upload_url = wizard::differ(self.upload_url.clone(), Some(o.upload_url.clone()));
                 print_block("\n The name of the secure cookie in which the client stores it's job ids ");
                 let job_cookie_name = wizard::differ(self.job_cookie_name.clone(), None);
                 Self{
-                    upload_limit: upload_limit,
+                    upload_limit,
                     upload_url: "http://localhost:5000/blendfiles/".to_string(),
-                    job_cookie_name: job_cookie_name,
+                    job_cookie_name,
                 }
             }
         }
@@ -579,7 +576,7 @@ impl Dialog for Flaskbender{
 
 
 
-// ============================= RABBITMQ STRUCT ===============================
+// ============================ RABBITMQ STRUCT ==============================
 #[serde(default)]
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct RabbitMQ{
@@ -602,7 +599,7 @@ impl Dialog for RabbitMQ{
         let url = Input::<String>::new().with_prompt("RabbitMQ URL").default( "amqp://localhost//".to_string()).interact().expect("Couldn't display dialog.");
         
         Self{
-            url: url
+            url
         }
     }
 
@@ -614,14 +611,14 @@ impl Dialog for RabbitMQ{
                 print_block("\n The AMQP URL for e.g. RabbitMQ ");
                 let url = wizard::differ(self.url.clone(), Some(o.url.clone()));
                 Self{
-                    url: url
+                    url
                 }
             },
             None => {
                 print_block("\n The AMQP URL for e.g. RabbitMQ ");
                 let url = wizard::differ(self.url.clone(), None);
                 Self{
-                    url: url
+                    url
                 }
             }
         }
@@ -674,13 +671,13 @@ impl Dialog for Janitor{
         let cancel_deletion_max_minutes   = Input::<usize>::new().with_prompt("Maximum grace period for canceled jobs (in minutes)").default(15).interact().expect("Couldn't display dialog.");
 
         Self{
-            checking_period_seconds:       checking_period_seconds,
-            error_deletion_min_minutes:    error_deletion_min_minutes,
-            error_deletion_max_minutes:    error_deletion_max_minutes,
-            finish_deletion_min_minutes:   finish_deletion_min_minutes,
-            finish_deletion_max_minutes:   finish_deletion_max_minutes,
-            cancel_deletion_min_minutes:   cancel_deletion_min_minutes,
-            cancel_deletion_max_minutes:   cancel_deletion_max_minutes
+            checking_period_seconds,
+            error_deletion_min_minutes,
+            error_deletion_max_minutes,
+            finish_deletion_min_minutes,
+            finish_deletion_max_minutes,
+            cancel_deletion_min_minutes,
+            cancel_deletion_max_minutes
         }
     }
 
@@ -706,13 +703,13 @@ impl Dialog for Janitor{
                 let cancel_deletion_max_minutes   = wizard::differ(self.cancel_deletion_max_minutes, Some(o.cancel_deletion_max_minutes));
                 
                 Self{
-                    checking_period_seconds:       checking_period_seconds,
-                    error_deletion_min_minutes:    error_deletion_min_minutes,
-                    error_deletion_max_minutes:    error_deletion_max_minutes,
-                    finish_deletion_min_minutes:   finish_deletion_min_minutes,
-                    finish_deletion_max_minutes:   finish_deletion_max_minutes,
-                    cancel_deletion_min_minutes:   cancel_deletion_min_minutes,
-                    cancel_deletion_max_minutes:   cancel_deletion_max_minutes
+                    checking_period_seconds,
+                    error_deletion_min_minutes,
+                    error_deletion_max_minutes,
+                    finish_deletion_min_minutes,
+                    finish_deletion_max_minutes,
+                    cancel_deletion_min_minutes,
+                    cancel_deletion_max_minutes
                 }
             },
             None => {
@@ -733,13 +730,13 @@ impl Dialog for Janitor{
                 let cancel_deletion_max_minutes   = wizard::differ(self.cancel_deletion_max_minutes, None);
                 
                 Self{
-                    checking_period_seconds:       checking_period_seconds,
-                    error_deletion_min_minutes:    error_deletion_min_minutes,
-                    error_deletion_max_minutes:    error_deletion_max_minutes,
-                    finish_deletion_min_minutes:   finish_deletion_min_minutes,
-                    finish_deletion_max_minutes:   finish_deletion_max_minutes,
-                    cancel_deletion_min_minutes:   cancel_deletion_min_minutes,
-                    cancel_deletion_max_minutes:   cancel_deletion_max_minutes
+                    checking_period_seconds,
+                    error_deletion_min_minutes,
+                    error_deletion_max_minutes,
+                    finish_deletion_min_minutes,
+                    finish_deletion_max_minutes,
+                    cancel_deletion_min_minutes,
+                    cancel_deletion_max_minutes
                 }
             }
         }
@@ -757,7 +754,8 @@ pub struct Worker{
     pub id: Uuid,
     pub disklimit: u64,
     pub grace_period: u64,
-    pub workload: usize
+    pub workload: usize,
+    pub heart_rate_seconds: isize
 }
 
 
@@ -767,7 +765,8 @@ impl Default for Worker{
             id: Uuid::new_v4(),       // Worker Random ID asigned uppon config
             disklimit: 2,             // in GB
             grace_period: 60,         // How many seconds to keep blendfiles,
-            workload: 1               // How many frames to render at once
+            workload: 1,              // How many frames to render at once,
+            heart_rate_seconds: 60    // How often to send out a heart beat
         }
     }
 }
@@ -781,12 +780,14 @@ impl Dialog for Worker{
         let disklimit = Input::<u64>::new().with_prompt("How much disk space should the worker keep free? (in GB)").default(2).interact().expect("Couldn't display dialog.");
         let grace_period = Input::<u64>::new().with_prompt("How long should downloaded blendfiles be kept around (ireelevant on server)? (in secs)").default(60).interact().expect("Couldn't display dialog.");
         let workload = Input::<usize>::new().with_prompt("How many frames should the worker render at once?").default(1).interact().expect("Couldn't display dialog.");
+        let heart_rate_seconds = Input::<isize>::new().with_prompt("How often should the worker send a heartbeat message to bender-qu at max (in seconds)?").default(1).interact().expect("Couldn't display dialog.");
         
         Self{
-            id: Uuid::new_v4(),                // Worker Random ID asigned uppon config
-            disklimit: disklimit,              // in GB
-            grace_period: grace_period,        // How many seconds to keep blendfiles,
-            workload: workload                 // How many frames to render at once
+            id: Uuid::new_v4(),
+            disklimit,
+            grace_period,
+            workload,
+            heart_rate_seconds
         }
     }
 
@@ -801,12 +802,15 @@ impl Dialog for Worker{
                 let grace_period = wizard::differ(self.grace_period, Some(o.grace_period));
                 print_block("\n How many frames should a worker accept at once? ");
                 let workload = wizard::differ(self.workload, Some(o.workload));
+                print_block("\nHow often should the worker send a heartbeat message to bender-qu at max (in seconds)? ");
+                let heart_rate_seconds = wizard::differ(self.heart_rate_seconds, Some(o.heart_rate_seconds));
 
                 Self{
-                    id: Uuid::new_v4(),                // Worker Random ID asigned uppon config
-                    disklimit: disklimit,              // in GB
-                    grace_period: grace_period,        // How many seconds to keep blendfiles,
-                    workload: workload                 // How many frames to render at once
+                    id: Uuid::new_v4(),
+                    disklimit,
+                    grace_period,
+                    workload,
+                    heart_rate_seconds
                 }
             },
             None => {
@@ -816,12 +820,16 @@ impl Dialog for Worker{
                 let grace_period = wizard::differ(self.grace_period, None);
                 print_block("\n How many frames should a worker accept at once? ");
                 let workload = wizard::differ(self.workload, None);
+                print_block("\nHow often should the worker send a heartbeat message to bender-qu at max (in seconds)? ");
+                let heart_rate_seconds = wizard::differ(self.heart_rate_seconds, None);
+
 
                 Self{
-                    id: Uuid::new_v4(),                // Worker Random ID asigned uppon config
-                    disklimit: disklimit,              // in GB
-                    grace_period: grace_period,        // How many seconds to keep blendfiles,
-                    workload: workload                 // How many frames to render at once
+                    id: Uuid::new_v4(),
+                    disklimit,
+                    grace_period,
+                    workload,
+                    heart_rate_seconds
                 }
             }
         }
@@ -834,7 +842,7 @@ impl Dialog for Worker{
 
 
 
-// ================================ UNIT TESTS =================================
+// =============================== UNIT TESTS ================================
 
 #[cfg(test)]
 mod unit_tests {
