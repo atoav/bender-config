@@ -61,7 +61,7 @@ pub mod wizard;
 use wizard::{Dialog, print_sectionlabel, print_block};
 
 
-pub type GenError = Box<std::error::Error>;
+pub type GenError = Box<dyn std::error::Error>;
 pub type GenResult<T> = Result<T, GenError>;
 
 
