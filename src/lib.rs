@@ -55,6 +55,11 @@ use std::path::PathBuf;
 use blake2::{Blake2b, Digest};
 use uuid::Uuid;
 use dialoguer::{Select, Input};
+use std::fs::DirBuilder;
+
+#[cfg(target_os = "linux")]
+use std::os::unix::fs::DirBuilderExt;
+
 
 
 pub mod wizard;
@@ -388,7 +393,16 @@ impl PathMethods for Path{
                 folder.pop();
                 if !folder.exists(){
                     println!("Trying to create path to {}", folder.clone().to_str().unwrap());
-                    fs::create_dir_all(folder)?;
+
+                    // Create frames directory with 775 permissions on Unix
+                    let mut builder = DirBuilder::new();
+
+                    if !cfg!(windows){
+                        // Set the permissions to 775
+                        builder.mode(0o2775);
+                    }
+                    builder.recursive(true)
+                           .create(&folder)?;
                 }
                 let file = fs::OpenOptions::new().append(true)
                                                  .create(true)
@@ -412,7 +426,14 @@ impl PathMethods for Path{
                 }
             }
             None => {
-                match fs::create_dir_all(self){
+                // Create frames directory with 775 permissions on Unix
+                let mut builder = DirBuilder::new();
+
+                if !cfg!(windows){
+                    // Set the permissions to 775
+                    builder.mode(0o2775);
+                }
+                match builder.recursive(true).create(&self) { 
                     Ok(_) => Ok(true),
                     Err(err) => match err.kind(){
                         std::io::ErrorKind::PermissionDenied => Ok(false),
