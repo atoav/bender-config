@@ -57,7 +57,7 @@ use uuid::Uuid;
 use dialoguer::{Select, Input};
 use std::fs::DirBuilder;
 
-#[cfg(target_os = "linux")]
+#[cfg(unix)]
 use std::os::unix::fs::DirBuilderExt;
 
 
@@ -397,10 +397,10 @@ impl PathMethods for Path{
                     // Create frames directory with 775 permissions on Unix
                     let mut builder = DirBuilder::new();
 
-                    if !cfg!(windows){
-                        // Set the permissions to 775
-                        builder.mode(0o2775);
-                    }
+                    // Set the permissions to 775
+                    #[cfg(unix)]
+                    builder.mode(0o2775);
+                    
                     builder.recursive(true)
                            .create(&folder)?;
                 }
@@ -429,10 +429,10 @@ impl PathMethods for Path{
                 // Create frames directory with 775 permissions on Unix
                 let mut builder = DirBuilder::new();
 
-                if !cfg!(windows){
-                    // Set the permissions to 775
-                    builder.mode(0o2775);
-                }
+                // Set the permissions to 775
+                #[cfg(unix)]
+                builder.mode(0o2775);
+                
                 match builder.recursive(true).create(&self) { 
                     Ok(_) => Ok(true),
                     Err(err) => match err.kind(){
