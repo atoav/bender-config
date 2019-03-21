@@ -787,7 +787,7 @@ impl Default for Worker{
             disklimit: 2,             // in GB
             grace_period: 60,         // How many seconds to keep blendfiles,
             workload: 1,              // How many frames to render at once,
-            heart_rate_seconds: 60    // How often to send out a heart beat
+            heart_rate_seconds: 10    // How often to send out a heart beat
         }
     }
 }
@@ -801,7 +801,7 @@ impl Dialog for Worker{
         let disklimit = Input::<u64>::new().with_prompt("How much disk space should the worker keep free? (in GB)").default(2).interact().expect("Couldn't display dialog.");
         let grace_period = Input::<u64>::new().with_prompt("How long should downloaded blendfiles be kept around (ireelevant on server)? (in secs)").default(60).interact().expect("Couldn't display dialog.");
         let workload = Input::<usize>::new().with_prompt("How many frames should the worker render at once?").default(1).interact().expect("Couldn't display dialog.");
-        let heart_rate_seconds = Input::<isize>::new().with_prompt("How often should the worker send a heartbeat message to bender-qu at max (in seconds)?").default(1).interact().expect("Couldn't display dialog.");
+        let heart_rate_seconds = Input::<isize>::new().with_prompt("How often should the worker send a heartbeat message to bender-qu at max (in seconds)?").default(10).interact().expect("Couldn't display dialog.");
         
         Self{
             id: Uuid::new_v4(),
